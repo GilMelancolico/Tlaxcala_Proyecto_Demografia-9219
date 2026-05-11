@@ -1,0 +1,269 @@
+---
+title: "Trabajo Final: Tlaxcala"
+author: 
+- "Nicolas de Silva Nacenta"
+- "Emmanuel Escobar Gutierrez"
+format: pdf
+editor: visual
+---
+
+## \textcolor{violet}{Introducción}
+
+Tlaxcala es el estado más pequeño de México, con $4016km^2$, ademas cuenta con $1,342,977$ personas que residen en el estado, con una población mayoritariamente femenina con un $51.6\%$ y ademas de una edad mediana de aproximadamente $28$ años, lo cual refleja una población mayoritariamnete joven
+
+Se estima que la tasa de desempleo del estado es de $2.54\%$ , la tasa de participación laboral es de $60.2\%$ y con un $70.9\%$ de la población en un sector informal, tambien sabemos que la esperanza de vida es de $75$ años en promedio aunque siendo mayor para las mujeres
+
+A diferencia de otros estados donde la población se concentra en una sola metrópoli, Tlaxcala presenta un modelo de dispersión urbana. La población se reparte en una constelación de municipios como Tlaxcala de Xicohténcatl, Huamantla, San Pablo del Monte y Apizaco, ninguno de los cuales domina de forma absoluta sobre los demás. Esta estructura plantea retos únicos en términos de infraestructura, movilidad y acceso a servicios de salud, donde la cobertura alcanza actualmente al $71.8\%$ de los tlaxcaltecas.
+
+## \textcolor{violet}{Lectura}
+
+La demografía es una ciencia social cuantitativa fundamental que nos permite entender el mundo desde la infancia por el conteo de edades y se vuelve crucial en la adultez para analizar retos globales como el envejecimiento, la migración y los cambios en la fertilidad. Esta disciplina destaca por la simplicidad de sus unidades de análisis, la regularidad de sus procesos biológicos y su capacidad interdisciplinaria para colaborar con otras ciencias del comportamiento humano. Para que sus mediciones tengan valor predictivo o explicativo, la demografía se apoya en modelos matemáticos que interpretan datos provenientes de cuatro fuentes principales, los censos, los registros vitales de los gobiernos, las encuestas por muestreo y las observaciones etnográficas que profundizan en las motivaciones personales de la población.
+
+## \textcolor{violet}{Análisis De Tlaxcala}
+
+```{r}
+# 1. Remover los objetos
+rm(list = ls())
+
+# 2. Instalar paquetes 
+
+library(lubridate)
+library(data.table)
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(kableExtra)
+library(readxl)
+
+# 3. Descargar tablas de datos
+pop <- fread("https://repodatos.atdt.gob.mx/CONAPO/proyecciones/00_Pob_Mitad_1950_2070.csv")
+
+# 4. Exploración de la tabla de población
+table(pop$ENTIDAD)
+table(pop$CVE_GEO)
+table(pop$ANIO)
+
+names(pop)
+sum(pop$POBLACION)
+
+# Filtrar Estado
+
+tlx <- pop[ENTIDAD == "Tlaxcala" & ANIO == "2026", .(SEXO, EDAD, POBLACION)]
+tlx
+
+```
+
+### \textcolor{purple}{Tabla (Piramide)}
+
+```{r}
+
+# 5. Transformación de datos para la pirámide
+# Agrupamos por rangos de 5 años para que coincida con la imagen
+tlx_pyramid <- tlx %>%
+  mutate(EDAD_GRP = cut(EDAD, 
+                        breaks = c(seq(0, 85, by = 5), Inf), 
+                        labels = c("0-4", "5-9", "10-14", "15-19", "20-24", "25-29", 
+                                   "30-34", "35-39", "40-44", "45-49", "50-54", "55-59", 
+                                   "60-64", "65-69", "70-74", "75-79", "80-84", "85+"), 
+                        right = FALSE)) %>%
+  group_by(SEXO, EDAD_GRP) %>%
+  summarise(POBLACION = sum(POBLACION)) %>%
+  ungroup()
+
+# Convertimos la población de "Hombres" en negativa para el efecto espejo
+tlx_pyramid <- tlx_pyramid %>%
+  mutate(POBLACION_GRAF = ifelse(SEXO == "Hombres", -POBLACION, POBLACION))
+
+# 6. Generar la gráfica con ggplot2
+ggplot(tlx_pyramid, aes(x = EDAD_GRP, y = POBLACION_GRAF, fill = SEXO)) +
+  geom_col() +
+  coord_flip() + # Voltea la gráfica para que las barras sean horizontales
+  scale_y_continuous(labels = abs) + # Muestra valores absolutos (sin el signo menos)
+  scale_fill_manual(values = c("Hombres" = "#a651a1", "Mujeres" = "#009688")) + # Colores de tu imagen
+  theme_minimal() +
+  labs(title = "Población De Tlaxcala (2026)",
+       subtitle = "Distribución por edad y sexo",
+       x = "Grupos de Edad", 
+       y = "Población",
+       fill = "Sexo") +
+  theme(legend.position = "bottom")
+
+```
+
+The `echo: false` option disables the printing of code (only output is displayed).
+
+## \textcolor{violet}{Lectura De La Tabla}
+
+La pirámide de Tlaxcala al $2026$ revela una transición demográfica en la que el estrechamiento de la base $(0-9 \text{ años})$ refleja una caída en la natalidad, desplazando el mayor peso poblacional hacia el lado de los jóvenes de entre $15$ y $29$ años. Este perfil indica que el estado cuenta actualmente con su mayor capacidad de fuerza productiva, aunque el ensanchamiento visible en los rangos de edades medias confirma un proceso de envejecimiento gradual de la población, todo bajo una distribución donde las mujeres representan el $51.6\%$ del total debido a su mayor esperanza de vida frente al $48.4\%$ de los hombres.
+
+##Guat
+
+```{r}
+
+(deaths <- fread("data/Mx_ARG_GUA.csv"))
+kable(deaths, caption= "Muertes de Argentina y Guatemala") 
+
+```
+
+## Escritura de funciones
+
+```{r}
+
+weight_mean <- function(x, w = rep(1/length(x), length(x))) {
+x_mean <- sum(x * w)/ sum(w)
+return(x_mean)
+}
+# Ejemplo
+weight_mean(c(10,40), c(.3,.7)) # Con peso
+
+expo <- function(K_0, K_T, t_0, t_T, t){
+  
+  t0 <- decimal_date(as.Date(t_0))
+  tT <- decimal_date(as.Date(t_T))
+  
+  r <- log(K_T / K_0) / (tT - t0)
+  
+  K_0 * exp(r * (t-t0))
+}
+
+cre_exp<-expo(K_0 = 112336538, K_T = 126014024, t_0= "2010-06-25", t_T="2020-03-15", t=seq(2020.5, 2100.5, 1))
+                
+#Grafica
+
+data.frame(Año = c(decimal_date(as.Date("2010-06-25")), decimal_date(as.Date("2020-03-15")), seq(2020.5, 2100.5, 1)), K_t = c(112336538, 126014024, cre_exp)) %>%
+  
+ggplot(aes(Año,K_t)) + geom_line() + geom_point()
+
+```
+
+
+```{r}
+
+#tasas brutas y especificas
+deaths<-deaths %>%
+  mutate(m_x= D/ N)
+
+plot(deaths[location== "Argentina",x], log(deaths[location == "Argentina",m_x]))
+
+#tasa bruta de mortalidad
+deaths %>%
+  group_by(location) %>%
+  summarise(weight_mean(m_x, x / sum(x)))
+
+
+```
+
+```{r}
+
+mort <- fread("https://population.un.org/wpp/assets/Excel%20Files/1_Indicator%20(Standard)/CSV_FILES/WPP2024_DeathsBySingleAgeSex_Medium_1950-2023.csv.gz")
+
+APV <- fread("https://population.un.org/wpp/assets/Excel%20Files/1_Indicator%20(Standard)/CSV_FILES/WPP2024_PopulationBySingleAgeSex_Medium_1950-2023.csv.gz")
+
+## LocID 484 México y 392 Japón
+
+```
+
+
+```{r}
+
+ruta_archivo <- "C:/Users/Mario Escobar/Downloads/Ciencias/Demografia/Demography_9219/Demography_9219/data/Tabla mort_guatemala.xlsx"
+
+guatemala <- read_excel(ruta_archivo, 
+                        sheet = "tabla mortalidad 1998",
+                        skip = 2
+                        )%>%
+  
+  rename_with(~case_when(
+    .x %in% c("x", "x (edad)") ~ "x",
+    .x %in% c("nKx", "K") ~ "K",
+    .x %in% c("nDx", "D") ~ "D",
+    TRUE ~ .x
+  ))%>%
+
+  mutate(
+    x = as.numeric(x),
+    n = as.numeric(n),
+    K = as.numeric(K),
+    D = as.numeric(D),
+    
+    mx = D/K #tasa mortalidad
+  )
+
+#funcion tablas de vida
+
+lt_abr <- function(x, n, mx, sex = "f", IMR = NA){
+  m <- length(x)
+  ax <- n/2
+  
+  #ajuste coale-demeny para 0-1
+  if(sex == "m"){
+    ax[1] <- ifelse(mx[1] >= 0.107, 0.330, 0.45+2.684*mx[1])
+  }else{
+    ax[1] <- ifelse(mx[1]>=0.107,0.350, 0.053+2.800*mx[1])
+  }
+  
+  #ajuste para 1-4
+  
+   if(sex == "m"){
+    ax[2] <- ifelse(mx[1] >= 0.107, 1.352, 1.651+2.816*mx[1])
+  }else{
+    ax[2] <- ifelse(mx[1]>=0.107,1.361, 1.522+1.518*mx[1])
+  } 
+  
+  #proba de morir
+  
+  qx <- (n*mx)/(1+(n-ax)*mx)
+  qx[m] <- 1
+  
+  #proba supervivencia
+  
+  px <- 1-qx
+  
+  #lx
+  
+  lx <- 100000 * cumprod(c(1, px[-m]))
+  
+  #dx
+  
+  dx <- c(-diff(lx),lx[m])
+  
+  #Lx
+  
+  Lx <- n*c(lx[-1],0) + ax*dx
+  Lx[m] <- lx[m]/mx[m]
+  
+  #Tx
+  
+  Tx <- rev(cumsum(rev(Lx)))
+  
+  #e_x
+  
+  ex <- Tx/lx
+  
+  return(data.table(x, n, mx, ax, qx, px, lx, dx, Lx, Tx, ex))
+}
+
+tabla_vida_1998 <- lt_abr(x = guatemala$x, n= guatemala$n, mx = guatemala$mx, sex = "f")
+print(tabla_vida_1998)
+
+```
+
+
+```{r}
+
+#grafica
+
+ggplot(tabla_vida_1998, aes(x=x, y=mx)) + geom_line(color ="violet") +
+scale_y_log10() + theme_minimal() + labs(title = "Tasa de mortalidad - Escala log",
+                                         x ="Edad",
+                                         y = "mx log")
+
+
+```
+
+
+
+
+
+
+

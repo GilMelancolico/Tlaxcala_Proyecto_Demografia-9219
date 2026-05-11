@@ -1,0 +1,340 @@
+---
+title: "Trabajo Final Tlaxcala"
+author: 
+- "Nicolas de Silva Nacenta"
+- "Emmanuel Escobar Gutierrez"
+format:
+  pdf:
+    documentclass: article
+editor: visual
+---
+
+## \textcolor{violet}{Introducción}
+
+## \textcolor{violet}{Introducción}
+
+Tlaxcala es el estado más pequeño de México, con una extensión de $4016km^2$ y una población de $1,342,977$ habitantes. La estructura demográfica refleja una población mayoritariamente joven, con una edad mediana de aproximadamente $28$ años, y una predominancia femenina del $51.6\%$. Esta composición etaria sugiere que, si bien la tasa bruta de mortalidad podría mantenerse relativamente baja debido al volumen de población en edades no avanzadas, las causas de defunción pueden estar fuertemente marcadas por factores exógenos en jóvenes (como accidentes) y un avance en la transición epidemiológica hacia enfermedades crónico-degenerativas en la población adulta.
+
+En el ámbito socioeconómico, el estado presenta una tasa de desempleo del $2.54\%$ y una tasa de participación laboral del $60.2\%$. Sin embargo, un factor determinante para el análisis de la mortalidad es que el $70.9\%$ de la población ocupada se encuentra en el sector informal. Esta alta concentración en la informalidad se traduce en una menor cobertura de seguridad social (como IMSS o ISSSTE), lo que incrementa el gasto de bolsillo en salud, retrasa el diagnóstico oportuno de enfermedades y dificulta el apego a tratamientos prolongados. Estos factores impactan directamente en la esperanza de vida al nacer, la cual se sitúa en un promedio de $75$ años, siendo estadísticamente mayor para las mujeres.
+
+A diferencia de otros estados donde la población se concentra en una sola gran metrópoli, Tlaxcala presenta un modelo de dispersión urbana y periurbana. Sus habitantes se reparten en una constelación de municipios interconectados como Tlaxcala, Huamantla, San Pablo del Monte, Apizaco y zonas como Xicohténcatl, sin que ninguno domine de forma absoluta. Esta estructura plantea retos severos en infraestructura, movilidad y, sobre todo, en el acceso efectivo a servicios de salud de tercer nivel. Aunque la cobertura de servicios de salud reporta un alcance del $71.8\%$, la fragmentación territorial puede retrasar la atención de urgencias médicas (obstétricas, cardiovasculares o traumatológicas), elevando la mortalidad por causas prevenibles. Además, la cercanía de asentamientos humanos a corredores industriales en estas zonas dispersas se asocia a factores de riesgo ambiental, los cuales influyen en patrones de morbilidad y mortalidad específicos de la región, como la notable incidencia de enfermedad renal crónica.
+
+## \textcolor{violet}{Análisis De Tlaxcala}
+
+```{r}
+# 1. Remover los objetos
+rm(list = ls())
+
+# 2. Instalar paquetes 
+
+library(lubridate)
+library(data.table)
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+#library(kableExtra)
+library(readxl)
+#library(tinytex)
+
+# 3. Descargar tablas de datos
+pop <- fread("https://repodatos.atdt.gob.mx/CONAPO/proyecciones/00_Pob_Mitad_1950_2070.csv")
+
+# 4. Exploración de la tabla de población
+table(pop$ENTIDAD)
+table(pop$CVE_GEO)
+table(pop$ANIO)
+
+names(pop)
+sum(pop$POBLACION)
+
+# Filtrar Estado
+
+tlx <- pop[ENTIDAD == "Tlaxcala" & ANIO == "2026", .(SEXO, EDAD, POBLACION)]
+tlx
+
+```
+
+### \textcolor{purple}{Tabla (Piramide)}
+
+```{r}
+
+# 5. Transformación de datos para la pirámide
+# Agrupamos por rangos de 5 años para que coincida con la imagen
+tlx_pyramid <- tlx %>%
+  mutate(EDAD_GRP = cut(EDAD, 
+                        breaks = c(seq(0, 85, by = 5), Inf), 
+                        labels = c("0-4", "5-9", "10-14", "15-19", "20-24", "25-29", 
+                                   "30-34", "35-39", "40-44", "45-49", "50-54", "55-59", 
+                                   "60-64", "65-69", "70-74", "75-79", "80-84", "85+"), 
+                        right = FALSE)) %>%
+  group_by(SEXO, EDAD_GRP) %>%
+  summarise(POBLACION = sum(POBLACION)) %>%
+  ungroup()
+
+# Convertimos la población de "Hombres" en negativa para el efecto espejo
+tlx_pyramid <- tlx_pyramid %>%
+  mutate(POBLACION_GRAF = ifelse(SEXO == "Hombres", -POBLACION, POBLACION))
+
+# 6. Generar la gráfica con ggplot2
+ggplot(tlx_pyramid, aes(x = EDAD_GRP, y = POBLACION_GRAF, fill = SEXO)) +
+  geom_col() +
+  coord_flip() + # Voltea la gráfica para que las barras sean horizontales
+  scale_y_continuous(labels = abs) + # Muestra valores absolutos (sin el signo menos)
+  scale_fill_manual(values = c("Hombres" = "#a651a1", "Mujeres" = "#009688")) + # Colores de tu imagen
+  theme_minimal() +
+  labs(title = "Población De Tlaxcala (2026)",
+       subtitle = "Distribución por edad y sexo",
+       x = "Grupos de Edad", 
+       y = "Población",
+       fill = "Sexo") +
+  theme(legend.position = "bottom")
+
+```
+
+The `echo: false` option disables the printing of code (only output is displayed).
+
+## \textcolor{violet}{Lectura De La Tabla}
+
+La pirámide de Tlaxcala al $2026$ revela una transición demográfica en la que el estrechamiento de la base $(0-9 \text{ años})$ refleja una caída en la natalidad, desplazando el mayor peso poblacional hacia el lado de los jóvenes de entre $15$ y $29$ años. Este perfil indica que el estado cuenta actualmente con su mayor capacidad de fuerza productiva, aunque el ensanchamiento visible en los rangos de edades medias confirma un proceso de envejecimiento gradual de la población, todo bajo una distribución donde las mujeres representan el $51.6\%$ del total debido a su mayor esperanza de vida frente al $48.4\%$ de los hombres.
+
+## \textcolor{violet}{Diagrama de Flujo}
+
+A continuación, se presenta el esquema metodológico diseñado por nuestra firma para la construcción de las tablas de mortalidad del estado de Tlaxcala correspondientes a los años 2010, 2019 y 2021.El objetivo de este diagrama de flujo es proporcionar al cliente total transparencia sobre el procedimiento algorítmico utilizado. El esquema detalla paso a paso la secuencia lógica de nuestros cálculos actuariales: desde la recopilación y conciliación de los datos demográficos brutos (población a mitad de año y registro de defunciones), pasando por la estimación de probabilidades de muerte en una cohorte teórica, hasta culminar con la obtención de nuestro indicador principal, la esperanza de vida ($e_x$).
+
+```         
+[ INICIO: Recopilación de Datos ]
+                     |
+                     v
++-----------------------------------------+
+| 1. Datos Base                           |
+|    - Población a mitad de año (P_x)     |
+|    - Defunciones registradas (D_x)      |
++-----------------------------------------+
+                     |
+                     v
++-----------------------------------------+
+| 2. Tasa Central de Mortalidad (m_x)     |
+|    Cálculo: m_x = D_x / P_x             |
++-----------------------------------------+
+                     |
+                     v
++-----------------------------------------+
+| 3. Probabilidad de Muerte (q_x)         |
+|    Conversión matemática de m_x a q_x   |
++-----------------------------------------+
+                     |
+                     v
++-----------------------------------------+
+| 4. Sobrevivientes Exactos (l_x)         |
+|    Se asume raíz inicial l_0 = 100,000  |
+|    Cálculo: l_{x+n} = l_x * (1 - q_x)   |
++-----------------------------------------+
+                     |
+                     v
++-----------------------------------------+
+| 5. Defunciones de la Tabla (d_x)        |
+|    Cálculo: d_x = l_x * q_x             |
++-----------------------------------------+
+                     |
+                     v
++-----------------------------------------+
+| 6. Años-Persona Vividos (L_x)           |
+|    Años vividos por la cohorte en x     |
++-----------------------------------------+
+                     |
+                     v
++-----------------------------------------+
+| 7. Años-Persona Totales (T_x)           |
+|    Suma acumulada de L_x desde abajo    |
++-----------------------------------------+
+                     |
+                     v
++-----------------------------------------+
+| 8. Esperanza de Vida (e_x)              |
+|    Cálculo: e_x = T_x / l_x             |
++-----------------------------------------+
+                     |
+                     v
+       [ FIN: Tabla de Vida Generada ]
+```
+
+## Predicción Con Crecimiento Exponencial
+
+Para conocer la población del 2019 y 2021, nos acercaremos con la "predicción exponencial", ya que no hay censos de la poblacion en esos años ya que son cada 10 años en México, usaremos los censos de población uy defunciones en el 2010 y 2020, lo haremos por sexos
+
+```{r}
+
+(deaths10 <- fread("data/2010Tlx_N,D.csv"))
+knitr::kable(
+  deaths10,
+  caption = "Muertes de Tlx 2010"
+)
+
+(deaths20 <- fread("data/2020Tlx_N,D.csv"))
+knitr::kable(
+  deaths20,
+  caption = "Muertes de Tlx 2020"
+)
+
+```
+
+## Escritura de funciones
+
+```{r}
+
+weight_mean <- function(x, w = rep(1/length(x), length(x))) {
+x_mean <- sum(x * w)/ sum(w)
+return(x_mean)
+}
+# Ejemplo
+weight_mean(c(10,40), c(.3,.7)) # Con peso
+
+expo <- function(K_0, K_T, t_0, t_T, t){
+  
+  t0 <- decimal_date(as.Date(t_0))
+  tT <- decimal_date(as.Date(t_T))
+  
+  r <- log(K_T / K_0) / (tT - t0)
+  
+  K_0 * exp(r * (t-t0))
+}
+
+cre_exp<-expo(K_0 = 112336538, K_T = 126014024, t_0= "2010-06-25", t_T="2020-03-15", t=seq(2020.5, 2100.5, 1))
+                
+#Grafica
+
+data.frame(Año = c(decimal_date(as.Date("2010-06-25")), decimal_date(as.Date("2020-03-15")), seq(2020.5, 2100.5, 1)), K_t = c(112336538, 126014024, cre_exp)) %>%
+  
+ggplot(aes(Año,K_t)) + geom_line() + geom_point()
+
+```
+
+```{r}
+# Tasas específicas de mortalidad
+deaths10 <- deaths10 %>%
+  mutate(
+    x = as.numeric(x),
+    m_x = D_hombre / N_hombre
+  )
+
+# Gráfica de tasas específicas
+plot(deaths10$x, log(deaths10$m_x),
+     type = "b",
+     xlab = "Edad",
+     ylab = "log(m_x)",
+     main = "Tasas específicas de mortalidad")
+
+# Tasa bruta de mortalidad
+deaths10 %>%
+  summarise(
+    TBM = sum(D_hombre) / sum(N_hombre)
+  )
+```
+
+```{r}
+
+mort <- fread("https://population.un.org/wpp/assets/Excel%20Files/1_Indicator%20(Standard)/CSV_FILES/WPP2024_DeathsBySingleAgeSex_Medium_1950-2023.csv.gz")
+
+APV <- fread("https://population.un.org/wpp/assets/Excel%20Files/1_Indicator%20(Standard)/CSV_FILES/WPP2024_PopulationBySingleAgeSex_Medium_1950-2023.csv.gz")
+
+## LocID 484 México y 392 Japón
+
+```
+
+saquemos las variables para las mujeres en Tlaxcala
+
+```{r}
+
+ruta_archivo <- "C:/Users/Mario Escobar/Downloads/Ciencias/Demografia/Demography_9219/Demography_9219/data/Tlx_tabla_mort.xlsx"
+
+tlaxcala <- read_excel(ruta_archivo, 
+                        sheet = "2010",
+                        skip = 0
+                        )%>%
+  
+  rename_with(~case_when(
+    .x %in% c("x", "x (edad)") ~ "x",
+    .x %in% c("nKxm", "K") ~ "K",
+    .x %in% c("nDxm", "D") ~ "D",
+    TRUE ~ .x
+  ))%>%
+
+  mutate(
+    x = as.numeric(x),
+    n = as.numeric(n),
+    K = as.numeric(K),
+    D = as.numeric(D),
+    
+    mx = D/K #tasa mortalidad
+  )
+
+#funcion tablas de vida
+
+lt_abr <- function(x, n, mx, sex = "m", IMR = NA){
+  m <- length(x)
+  ax <- n/2
+  
+  #ajuste coale-demeny para 0-1
+  if(sex == "m"){
+    ax[1] <- ifelse(mx[1] >= 0.107, 0.330, 0.45+2.684*mx[1])
+  }else{
+    ax[1] <- ifelse(mx[1]>=0.107,0.350, 0.053+2.800*mx[1])
+  }
+  
+  #ajuste para 1-4
+  
+   if(sex == "h"){
+    ax[2] <- ifelse(mx[1] >= 0.107, 1.352, 1.651+2.816*mx[1])
+  }else{
+    ax[2] <- ifelse(mx[1]>=0.107,1.361, 1.522+1.518*mx[1])
+  } 
+  
+  #proba de morir
+  
+  qx <- (n*mx)/(1+(n-ax)*mx)
+  qx[m] <- 1
+  
+  #proba supervivencia
+  
+  px <- 1-qx
+  
+  #lx
+  
+  lx <- 100000 * cumprod(c(1, px[-m]))
+  
+  #dx
+  
+  dx <- c(-diff(lx),lx[m])
+  
+  #Lx
+  
+  Lx <- n*c(lx[-1],0) + ax*dx
+  Lx[m] <- lx[m]/mx[m]
+  
+  #Tx
+  
+  Tx <- rev(cumsum(rev(Lx)))
+  
+  #e_x
+  
+  ex <- Tx/lx
+  
+  return(data.table(x, n, mx, ax, qx, px, lx, dx, Lx, Tx, ex))
+}
+
+tabla_vida_2010 <- lt_abr(x = tlaxcala$x, n= tlaxcala$n, mx = tlaxcala$mx, sex = "f")
+print(tabla_vida_2010)
+
+
+#grafica
+
+ggplot(tabla_vida_2010, aes(x=x, y=mx)) + geom_line(color ="violet") +
+scale_y_log10() + theme_minimal() + labs(title = "Tasa de mortalidad - Escala log",
+                                         x ="Edad",
+                                         y = "mx log")
+
+```
+
+```{r}
+#2019
+```
