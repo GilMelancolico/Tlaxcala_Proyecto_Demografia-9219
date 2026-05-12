@@ -241,90 +241,219 @@ APV <- fread("https://population.un.org/wpp/assets/Excel%20Files/1_Indicator%20(
 
 ```
 
-saquemos las variables para las mujeres en Tlaxcala
+saquemos las variables para las mujeres y hombres por separado en Tlaxcala
 
 ```{r}
 
 ruta_archivo <- "C:/Users/Mario Escobar/Downloads/Ciencias/Demografia/Demography_9219/Demography_9219/data/Tlx_tabla_mort.xlsx"
 
-tlaxcala <- read_excel(ruta_archivo, 
-                        sheet = "2010",
-                        skip = 0
-                        )%>%
-  
-  rename_with(~case_when(
-    .x %in% c("x", "x (edad)") ~ "x",
-    .x %in% c("nKxm", "K") ~ "K",
-    .x %in% c("nDxm", "D") ~ "D",
-    TRUE ~ .x
-  ))%>%
+tlaxcala <- read_excel(
+  ruta_archivo,
+  sheet = "2010"
+)
 
+# Renombrar columnas
+tlaxcala <- tlaxcala %>%
+  
+  rename(
+    x = 1,
+    n = 2,
+    K_h = 3,
+    K_m = 4,
+    D_h = 5,
+    D_m = 6
+  ) %>%
+  
   mutate(
+    x = ifelse(x == "95+", 95, x),
+    
     x = as.numeric(x),
     n = as.numeric(n),
-    K = as.numeric(K),
-    D = as.numeric(D),
     
-    mx = D/K #tasa mortalidad
+    K_h = as.numeric(K_h),
+    K_m = as.numeric(K_m),
+    
+    D_h = as.numeric(D_h),
+    D_m = as.numeric(D_m)
   )
 
-#funcion tablas de vida
+lt_abr <- function(x, n, mx, sex = "h"){
 
-lt_abr <- function(x, n, mx, sex = "m", IMR = NA){
   m <- length(x)
+
   ax <- n/2
-  
-  #ajuste coale-demeny para 0-1
-  if(sex == "m"){
-    ax[1] <- ifelse(mx[1] >= 0.107, 0.330, 0.45+2.684*mx[1])
-  }else{
-    ax[1] <- ifelse(mx[1]>=0.107,0.350, 0.053+2.800*mx[1])
+
+  # Ajuste Coale-Demeny edad 0
+
+  if(sex == "h"){
+
+    ax[1] <- ifelse(
+      mx[1] >= 0.107,
+      0.330,
+      0.045 + 2.684 * mx[1]
+    )
+
+  } else {
+
+    ax[1] <- ifelse(
+      mx[1] >= 0.107,
+      0.350,
+      0.053 + 2.800 * mx[1]
+    )
   }
-  
-  #ajuste para 1-4
-  
-   if(sex == "h"){
-    ax[2] <- ifelse(mx[1] >= 0.107, 1.352, 1.651+2.816*mx[1])
-  }else{
-    ax[2] <- ifelse(mx[1]>=0.107,1.361, 1.522+1.518*mx[1])
-  } 
-  
-  #proba de morir
-  
-  qx <- (n*mx)/(1+(n-ax)*mx)
+
+  # Ajuste edad 1-4
+
+  if(sex == "h"){
+
+    ax[2] <- ifelse(
+      mx[1] >= 0.107,
+      1.352,
+      1.651 + 2.816 * mx[1]
+    )
+
+  } else {
+
+    ax[2] <- ifelse(
+      mx[1] >= 0.107,
+      1.361,
+      1.522 + 1.518 * mx[1]
+    )
+  }
+
+  # qx
+
+  qx <- (n * mx) / (1 + (n - ax) * mx)
+
   qx[m] <- 1
-  
-  #proba supervivencia
-  
-  px <- 1-qx
-  
-  #lx
-  
+
+  # px
+
+  px <- 1 - qx
+
+  # lx
+
   lx <- 100000 * cumprod(c(1, px[-m]))
-  
-  #dx
-  
-  dx <- c(-diff(lx),lx[m])
-  
-  #Lx
-  
-  Lx <- n*c(lx[-1],0) + ax*dx
-  Lx[m] <- lx[m]/mx[m]
-  
-  #Tx
-  
+
+  # dx
+
+  dx <- c(-diff(lx), lx[m])
+
+  # Lx
+
+  Lx <- n * c(lx[-1], 0) + ax * dx
+
+  Lx[m] <- lx[m] / mx[m]
+
+  # Tx
+
   Tx <- rev(cumsum(rev(Lx)))
-  
-  #e_x
-  
-  ex <- Tx/lx
-  
-  return(data.table(x, n, mx, ax, qx, px, lx, dx, Lx, Tx, ex))
+
+  # ex
+
+  ex <- Tx / lx
+
+  data.table(
+    x, n, mx, ax, qx, px, lx, dx, Lx, Tx, ex
+  )
 }
 
-tabla_vida_2010 <- lt_abr(x = tlaxcala$x, n= tlaxcala$n, mx = tlaxcala$mx, sex = "f")
-print(tabla_vida_2010)
+# TABLA HOMBRES
 
+mx_h <- tlaxcala$D_h / tlaxcala$K_h
+
+tabla_hombres <- lt_abr(
+  x = tlaxcala$x,
+  n = tlaxcala$n,
+  mx = mx_h,
+  sex = "h"
+)
+
+# TABLA MUJERES
+
+mx_m <- tlaxcala$D_m / tlaxcala$K_m
+
+tabla_mujeres <- lt_abr(
+  x = tlaxcala$x,
+  n = tlaxcala$n,
+  mx = mx_m,
+  sex = "f"
+)
+
+```
+
+```{r, results='asis'}
+## hombres 2010
+
+cat("\\setlength{\\tabcolsep}{2pt}") 
+cat("\\tiny") 
+
+knitr::kable(
+  tabla_hombres,
+  format = "latex",
+  booktabs = TRUE,
+  caption = "Tabla de Vida Abreviada: Tlaxcala 2010 (Hombres)",
+  align = "c",
+  digits = 4,
+  format.args = list(
+    big.mark = ".",
+    decimal.mark = ","
+  )
+)
+
+cat("\\normalsize")
+cat("\\setlength{\\tabcolsep}{6pt}")
+
+## mujeres 2010
+
+cat("\\setlength{\\tabcolsep}{2pt}") 
+cat("\\tiny") 
+
+knitr::kable(
+  tabla_mujeres,
+  format = "latex",
+  booktabs = TRUE,
+  caption = "Tabla de Vida Abreviada: Tlaxcala 2010 (Mujeres)",
+  align = "c",
+  digits = 4,
+  format.args = list(
+    big.mark = ".",
+    decimal.mark = ","
+  )
+)
+
+cat("\\normalsize")
+cat("\\setlength{\\tabcolsep}{6pt}")
+
+```
+
+```{r}
+
+# Gráfica lx hombres 2010
+
+plot(
+  tabla_hombres$x,
+  tabla_hombres$lx,
+  type = "l",
+  xlab = "Edad",
+  ylab = "lx",
+  main = "Función de sobrevivientes lx - Hombres"
+)
+
+#Grafica lx mujeres 2010
+
+plot(
+  tabla_mujeres$x,
+  tabla_mujeres$lx,
+  type = "l",
+  xlab = "Edad",
+  ylab = "lx",
+  main = "Función de sobrevivientes lx - Mujeres"
+)
+
+```
+
+```{r}
 
 #grafica
 
