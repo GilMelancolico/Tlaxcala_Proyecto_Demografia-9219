@@ -427,43 +427,105 @@ cat("\\setlength{\\tabcolsep}{6pt}")
 
 ```
 
+Estas son las gráficas de $l_x$, ${}_nd_x$ y ${}_nm_x$ respecto a los datos obtenidos de hombres y mujeres de los años 2010, 2019 y 2021
+
 ```{r}
 
-# Gráfica lx hombres 2010
+### Gráficas lx, ndx y nmx - Hombres 2010
 
+par(mfrow = c(1,3))
+
+# lx
 plot(
   tabla_hombres$x,
   tabla_hombres$lx,
   type = "l",
+  lwd = 2,
   xlab = "Edad",
   ylab = "lx",
-  main = "Función de sobrevivientes lx - Hombres"
+  main = "Sobrevivientes lx_hombres 2010"
 )
 
-#Grafica lx mujeres 2010
+# ndx
+plot(
+  tabla_hombres$x,
+  tabla_hombres$dx,
+  type = "l",
+  lwd = 2,
+  xlab = "Edad",
+  ylab = "dx",
+  main = "Defunciones ndx_hombres 2010"
+)
 
+# nmx
+plot(
+  tabla_hombres$x,
+  tabla_hombres$mx,
+  type = "l",
+  log = "y",
+  lwd = 2,
+  xlab = "Edad",
+  ylab = "mx",
+  main = "Tasas de mortalidad nmx_hombres 2010"
+)
+
+# Regresar formato normal
+par(mfrow = c(1,1))
+
+### Grafica lx, ndx y nmx - Mujeres 2010
+
+par(mfrow = c(1,3))
+
+# lx
 plot(
   tabla_mujeres$x,
   tabla_mujeres$lx,
   type = "l",
+  lwd = 2,
   xlab = "Edad",
   ylab = "lx",
-  main = "Función de sobrevivientes lx - Mujeres"
+  main = "Sobrevivientes lx_mujeres 2010"
 )
 
+# ndx
+plot(
+  tabla_mujeres$x,
+  tabla_mujeres$dx,
+  type = "l",
+  lwd = 2,
+  xlab = "Edad",
+  ylab = "dx",
+  main = "Defunciones ndx_mujeres 2010"
+)
+
+# nmx
+plot(
+  tabla_mujeres$x,
+  tabla_mujeres$mx,
+  type = "l",
+  log = "y",
+  lwd = 2,
+  xlab = "Edad",
+  ylab = "mx",
+  main = "Tasas de mortalidad nmx_mujeres 2010"
+)
+
+par(mfrow = c(1,1))
+
 ```
+
 
 ```{r}
 
-#grafica
-
-ggplot(tabla_vida_2010, aes(x=x, y=mx)) + geom_line(color ="violet") +
-scale_y_log10() + theme_minimal() + labs(title = "Tasa de mortalidad - Escala log",
-                                         x ="Edad",
-                                         y = "mx log")
-
-```
-
-```{r}
 #2019
+
 ```
+
+```{r}
+
+#2021
+
+```
+
+
+
