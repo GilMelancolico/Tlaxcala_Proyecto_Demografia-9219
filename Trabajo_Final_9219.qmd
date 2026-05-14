@@ -11,8 +11,6 @@ editor: visual
 
 ## \textcolor{violet}{Introducción}
 
-## \textcolor{violet}{Introducción}
-
 Tlaxcala es el estado más pequeño de México, con una extensión de $4016km^2$ y una población de $1,342,977$ habitantes. La estructura demográfica refleja una población mayoritariamente joven, con una edad mediana de aproximadamente $28$ años, y una predominancia femenina del $51.6\%$. Esta composición etaria sugiere que, si bien la tasa bruta de mortalidad podría mantenerse relativamente baja debido al volumen de población en edades no avanzadas, las causas de defunción pueden estar fuertemente marcadas por factores exógenos en jóvenes (como accidentes) y un avance en la transición epidemiológica hacia enfermedades crónico-degenerativas en la población adulta.
 
 En el ámbito socioeconómico, el estado presenta una tasa de desempleo del $2.54\%$ y una tasa de participación laboral del $60.2\%$. Sin embargo, un factor determinante para el análisis de la mortalidad es que el $70.9\%$ de la población ocupada se encuentra en el sector informal. Esta alta concentración en la informalidad se traduce en una menor cobertura de seguridad social (como IMSS o ISSSTE), lo que incrementa el gasto de bolsillo en salud, retrasa el diagnóstico oportuno de enfermedades y dificulta el apego a tratamientos prolongados. Estos factores impactan directamente en la esperanza de vida al nacer, la cual se sitúa en un promedio de $75$ años, siendo estadísticamente mayor para las mujeres.
@@ -58,7 +56,6 @@ tlx
 
 ```{r}
 
-# 5. Transformación de datos para la pirámide
 # Agrupamos por rangos de 5 años para que coincida con la imagen
 tlx_pyramid <- tlx %>%
   mutate(EDAD_GRP = cut(EDAD, 
@@ -158,19 +155,19 @@ A continuación, se presenta el esquema metodológico diseñado por nuestra firm
        [ FIN: Tabla de Vida Generada ]
 ```
 
-## Predicción Con Crecimiento Exponencial
+## Datos de la Población en los Años 2010 y 2020
 
-Para conocer la población del 2019 y 2021, nos acercaremos con la "predicción exponencial", ya que no hay censos de la poblacion en esos años ya que son cada 10 años en México, usaremos los censos de población uy defunciones en el 2010 y 2020, lo haremos por sexos
+Primero que todo estos son los datos obtenidos gracias a los censos de los años 2010 y 2020 tanto de hombres como de mujeres:
 
 ```{r}
 
-(deaths10 <- fread("data/2010Tlx_N,D.csv"))
+deaths10 <- fread("data/2010Tlx_N,D.csv")
 knitr::kable(
   deaths10,
   caption = "Muertes de Tlx 2010"
 )
 
-(deaths20 <- fread("data/2020Tlx_N,D.csv"))
+deaths20 <- fread("data/2020Tlx_N,D.csv")
 knitr::kable(
   deaths20,
   caption = "Muertes de Tlx 2020"
@@ -178,60 +175,12 @@ knitr::kable(
 
 ```
 
-## Escritura de funciones
+Para conocer la población del 2019 y 2021, nos acercaremos con la "predicción exponencial", pues no hay censos de la poblacion en esos años, ya que son cada 10 años en México, usaremos los censos de población y defunciones en el 2010 y 2020, lo haremos por cada género.
+
 
 ```{r}
 
-weight_mean <- function(x, w = rep(1/length(x), length(x))) {
-x_mean <- sum(x * w)/ sum(w)
-return(x_mean)
-}
-# Ejemplo
-weight_mean(c(10,40), c(.3,.7)) # Con peso
-
-expo <- function(K_0, K_T, t_0, t_T, t){
-  
-  t0 <- decimal_date(as.Date(t_0))
-  tT <- decimal_date(as.Date(t_T))
-  
-  r <- log(K_T / K_0) / (tT - t0)
-  
-  K_0 * exp(r * (t-t0))
-}
-
-cre_exp<-expo(K_0 = 112336538, K_T = 126014024, t_0= "2010-06-25", t_T="2020-03-15", t=seq(2020.5, 2100.5, 1))
-                
-#Grafica
-
-data.frame(Año = c(decimal_date(as.Date("2010-06-25")), decimal_date(as.Date("2020-03-15")), seq(2020.5, 2100.5, 1)), K_t = c(112336538, 126014024, cre_exp)) %>%
-  
-ggplot(aes(Año,K_t)) + geom_line() + geom_point()
-
-```
-
-```{r}
-# Tasas específicas de mortalidad
-deaths10 <- deaths10 %>%
-  mutate(
-    x = as.numeric(x),
-    m_x = D_hombre / N_hombre
-  )
-
-# Gráfica de tasas específicas
-plot(deaths10$x, log(deaths10$m_x),
-     type = "b",
-     xlab = "Edad",
-     ylab = "log(m_x)",
-     main = "Tasas específicas de mortalidad")
-
-# Tasa bruta de mortalidad
-deaths10 %>%
-  summarise(
-    TBM = sum(D_hombre) / sum(N_hombre)
-  )
-```
-
-```{r}
+### Esto aun no se para que lo vamos a usar, lo vimos en clase pero ni idea, en la entrega final lo borramos si no se ocupa
 
 mort <- fread("https://population.un.org/wpp/assets/Excel%20Files/1_Indicator%20(Standard)/CSV_FILES/WPP2024_DeathsBySingleAgeSex_Medium_1950-2023.csv.gz")
 
@@ -241,7 +190,9 @@ APV <- fread("https://population.un.org/wpp/assets/Excel%20Files/1_Indicator%20(
 
 ```
 
-saquemos las variables para las mujeres y hombres por separado en Tlaxcala
+## \textcolor{violet}{Metodología y Proyección Exponencial}
+
+Para el cálculo de las tablas de mortalidad en años intercensales (2019 y 2021), es necesario establecer un puente matemático entre los censos de 2010 y 2020. A continuación, se definen las funciones algorítmicas que permiten proyectar tanto el volumen poblacional como las defunciones, asumiendo una tasa de crecimiento constante por grupo de edad.
 
 ```{r}
 
@@ -276,6 +227,31 @@ tlaxcala <- tlaxcala %>%
     D_h = as.numeric(D_h),
     D_m = as.numeric(D_m)
   )
+
+### Función de proyección exponencial
+expo <- function(K_0, K_T, t_0, t_T, t){
+  
+  # Reemplazar NA
+  
+  K_0[is.na(K_0)] <- 0.5
+  K_T[is.na(K_T)] <- 0.5
+  
+  # Reemplazar ceros
+  
+  K_0[K_0 == 0] <- 0.5
+  K_T[K_T == 0] <- 0.5
+  
+  # crecimiento exponencial
+  
+  r <- log(K_T / K_0) / (t_T - t_0)
+  
+  K_t <- K_0 * exp(r * (t - t_0))
+  
+  return(K_t)
+}
+
+
+### Funcion Tabla de vida
 
 lt_abr <- function(x, n, mx, sex = "h"){
 
@@ -382,6 +358,8 @@ tabla_mujeres <- lt_abr(
 
 ```
 
+primero obtengamos la tabla de vida de 2010 de hombres y mujeres para observar como se comportan las variables con nuestros datos
+
 ```{r, results='asis'}
 ## hombres 2010
 
@@ -427,105 +405,262 @@ cat("\\setlength{\\tabcolsep}{6pt}")
 
 ```
 
+Ahora esto es lo que hay que hacer y lo obtenido de predecir 2019 y 2021 con $l_x$ = 100,000
+
+```{r}
+
+### Carga y Limpieza
+
+deaths10 <- fread("data/2010Tlx_N,D.csv")
+deaths20 <- fread("data/2020Tlx_N,D.csv")
+
+# 3. Funciones de limpieza mejoradas
+clean_2010 <- function(x) {
+  # Forzamos a que el punto se ignore y se trate como miles
+  x_num <- as.numeric(as.character(x))
+  ifelse(x_num < 100, x_num * 1000, x_num)
+}
+
+clean_2020 <- function(x) {
+  as.numeric(gsub("[[:space:]]", "", as.character(x)))
+}
+
+# Limpieza de tablas
+
+tlx10 <- deaths10 %>%
+  mutate(
+    x = as.numeric(gsub("\\+", "", x)), # Quita el "+" de "95+"
+    N_h = clean_2010(N_hombre),
+    N_m = clean_2010(N_mujer),
+    D_h = as.numeric(D_hombre),
+    D_m = as.numeric(D_mujer)
+  )
+
+tlx20 <- deaths20 %>%
+  mutate(
+    x = as.numeric(gsub("\\+", "", x)),
+    N_h = clean_2020(N_hombre),
+    N_m = clean_2020(N_mujer),
+    D_h = clean_2020(D_hombre),
+    D_m = clean_2020(D_mujer)
+  )
+
+```
+
+```{r}
+
+### Proyecciones 2019 y 2021
+
+# Usamos decimal_date para que la diferencia de tiempo sea exacta (aprox 9.72 años)
+t_10 <- decimal_date(as.Date("2010-06-25"))
+t_20 <- decimal_date(as.Date("2020-03-15"))
+
+# Proyectamos a mitad de año (Julio) para 2019 y 2021
+t_19 <- 2019.5
+t_21 <- 2021.5
+
+# Crear tabla 2019 proyectada
+tlx19 <- tlx10 %>%
+  select(x) %>%
+  mutate(
+    n = c(diff(x), 5), # Definimos el ancho del intervalo de edad
+    N_h = expo(tlx10$N_h, tlx20$N_h, t_10, t_20, t_19),
+    N_m = expo(tlx10$N_m, tlx20$N_m, t_10, t_20, t_19),
+    D_h = expo(tlx10$D_h, tlx20$D_h, t_10, t_20, t_19),
+    D_m = expo(tlx10$D_m, tlx20$D_m, t_10, t_20, t_19)
+  )
+
+# Crear tabla 2021 proyectada
+tlx21 <- tlx10 %>%
+  select(x) %>%
+  mutate(
+    n = c(diff(x), 5),
+    N_h = expo(tlx10$N_h, tlx20$N_h, t_10, t_20, t_21),
+    N_m = expo(tlx10$N_m, tlx20$N_m, t_10, t_20, t_21),
+    D_h = expo(tlx10$D_h, tlx20$D_h, t_10, t_20, t_21),
+    D_m = expo(tlx10$D_m, tlx20$D_m, t_10, t_20, t_21)
+  )
+
+```
+
+```{r}
+
+### Generacion de tablas 2019 y 2021
+
+# Hombres 2019
+tabla_h19 <- lt_abr(
+  x = tlx19$x, 
+  n = tlx19$n, 
+  mx = tlx19$D_h / tlx19$N_h, 
+  sex = "h"
+)
+
+# Mujeres 2019
+tabla_m19 <- lt_abr(
+  x = tlx19$x, 
+  n = tlx19$n, 
+  mx = tlx19$D_m / tlx19$N_m, 
+  sex = "f"
+)
+
+# Hombres 2021
+tabla_h21 <- lt_abr(
+  x = tlx21$x, 
+  n = tlx21$n, 
+  mx = tlx21$D_h / tlx21$N_h, 
+  sex = "h"
+)
+
+# Mujeres 2021
+tabla_m21 <- lt_abr(
+  x = tlx21$x, 
+  n = tlx21$n, 
+  mx = tlx21$D_m / tlx21$N_m, 
+  sex = "f"
+)
+
+```
+
+```{r, results='asis'}
+
+# 2019 
+
+# Hombres 2019
+cat("\\setlength{\\tabcolsep}{2pt}") 
+cat("\\tiny") 
+
+knitr::kable(
+  tabla_h19,
+  format = "latex",
+  booktabs = TRUE,
+  caption = "Tabla de Vida Abreviada: Tlaxcala 2019 (Hombres)",
+  align = "c",
+  digits = 4,
+  format.args = list(big.mark = ".", decimal.mark = ",")
+)
+
+cat("\\normalsize")
+cat("\\setlength{\\tabcolsep}{6pt}")
+
+# Mujeres 2019
+cat("\\setlength{\\tabcolsep}{2pt}") 
+cat("\\tiny") 
+
+knitr::kable(
+  tabla_m19,
+  format = "latex",
+  booktabs = TRUE,
+  caption = "Tabla de Vida Abreviada: Tlaxcala 2019 (Mujeres)",
+  align = "c",
+  digits = 4,
+  format.args = list(big.mark = ".", decimal.mark = ",")
+)
+
+cat("\\normalsize")
+cat("\\setlength{\\tabcolsep}{6pt}")
+
+```
+
+
+```{r, results='asis'}
+
+# 2021
+
+# Hombres 2021
+cat("\\setlength{\\tabcolsep}{2pt}") 
+cat("\\tiny") 
+
+knitr::kable(
+  tabla_h21,
+  format = "latex",
+  booktabs = TRUE,
+  caption = "Tabla de Vida Abreviada: Tlaxcala 2021 (Hombres)",
+  align = "c",
+  digits = 4,
+  format.args = list(big.mark = ".", decimal.mark = ",")
+)
+
+cat("\\normalsize")
+cat("\\setlength{\\tabcolsep}{6pt}")
+
+# Mujeres 2021
+cat("\\setlength{\\tabcolsep}{2pt}") 
+cat("\\tiny") 
+
+knitr::kable(
+  tabla_m21,
+  format = "latex",
+  booktabs = TRUE,
+  caption = "Tabla de Vida Abreviada: Tlaxcala 2021 (Mujeres)",
+  align = "c",
+  digits = 4,
+  format.args = list(big.mark = ".", decimal.mark = ",")
+)
+
+cat("\\normalsize")
+cat("\\setlength{\\tabcolsep}{6pt}")
+
+```
+
+
+\textcolor{violet}{Visualización de Resultados: Gráficas}
+
 Estas son las gráficas de $l_x$, ${}_nd_x$ y ${}_nm_x$ respecto a los datos obtenidos de hombres y mujeres de los años 2010, 2019 y 2021
 
 ```{r}
 
-### Gráficas lx, ndx y nmx - Hombres 2010
+### H 2010 lx, ndx y nmx
 
 par(mfrow = c(1,3))
+plot(tabla_hombres$x, tabla_hombres$lx, type = "l", lwd = 2, col = "blue", xlab = "Edad", ylab = "lx", main = "Sobrevivientes lx (H 2010)")
+plot(tabla_hombres$x, tabla_hombres$dx, type = "l", lwd = 2, col = "red", xlab = "Edad", ylab = "dx", main = "Defunciones dx (H 2010)")
+plot(tabla_hombres$x, tabla_hombres$mx, type = "l", log = "y", lwd = 2, col = "black", xlab = "Edad", ylab = "mx", main = "Riesgo mx (H 2010)")
 
-# lx
-plot(
-  tabla_hombres$x,
-  tabla_hombres$lx,
-  type = "l",
-  lwd = 2,
-  xlab = "Edad",
-  ylab = "lx",
-  main = "Sobrevivientes lx_hombres 2010"
-)
-
-# ndx
-plot(
-  tabla_hombres$x,
-  tabla_hombres$dx,
-  type = "l",
-  lwd = 2,
-  xlab = "Edad",
-  ylab = "dx",
-  main = "Defunciones ndx_hombres 2010"
-)
-
-# nmx
-plot(
-  tabla_hombres$x,
-  tabla_hombres$mx,
-  type = "l",
-  log = "y",
-  lwd = 2,
-  xlab = "Edad",
-  ylab = "mx",
-  main = "Tasas de mortalidad nmx_hombres 2010"
-)
-
-# Regresar formato normal
-par(mfrow = c(1,1))
-
-### Grafica lx, ndx y nmx - Mujeres 2010
-
+### M 2010 lx, ndx y nmx
 par(mfrow = c(1,3))
-
-# lx
-plot(
-  tabla_mujeres$x,
-  tabla_mujeres$lx,
-  type = "l",
-  lwd = 2,
-  xlab = "Edad",
-  ylab = "lx",
-  main = "Sobrevivientes lx_mujeres 2010"
-)
-
-# ndx
-plot(
-  tabla_mujeres$x,
-  tabla_mujeres$dx,
-  type = "l",
-  lwd = 2,
-  xlab = "Edad",
-  ylab = "dx",
-  main = "Defunciones ndx_mujeres 2010"
-)
-
-# nmx
-plot(
-  tabla_mujeres$x,
-  tabla_mujeres$mx,
-  type = "l",
-  log = "y",
-  lwd = 2,
-  xlab = "Edad",
-  ylab = "mx",
-  main = "Tasas de mortalidad nmx_mujeres 2010"
-)
-
+plot(tabla_mujeres$x, tabla_mujeres$lx, type = "l", lwd = 2, col = "blue", xlab = "Edad", ylab = "lx", main = "Sobrevivientes lx (M 2010)")
+plot(tabla_mujeres$x, tabla_mujeres$dx, type = "l", lwd = 2, col = "red", xlab = "Edad", ylab = "dx", main = "Defunciones dx (M 2010)")
+plot(tabla_mujeres$x, tabla_mujeres$mx, type = "l", log = "y", lwd = 2, col = "black", xlab = "Edad", ylab = "mx", main = "Riesgo mx (M 2010)")
 par(mfrow = c(1,1))
 
 ```
 
 
 ```{r}
+### H 2019 lx, ndx y nmx
 
-#2019
+par(mfrow = c(1,3))
+plot(tabla_h19$x, tabla_h19$lx, type = "l", lwd = 2, col = "blue", xlab = "Edad", ylab = "lx", main = "Sobrevivientes lx (H 2019)")
+plot(tabla_h19$x, tabla_h19$dx, type = "l", lwd = 2, col = "red", xlab = "Edad", ylab = "dx", main = "Defunciones dx (H 2019)")
+plot(tabla_h19$x, tabla_h19$mx, type = "l", log = "y", lwd = 2, col = "black", xlab = "Edad", ylab = "mx", main = "Riesgo mx (H 2019)")
+
+### M 2019 lx, ndx y nmx
+
+par(mfrow = c(1,3))
+plot(tabla_m19$x, tabla_m19$lx, type = "l", lwd = 2, col = "blue", xlab = "Edad", ylab = "lx", main = "Sobrevivientes lx (M 2019)")
+plot(tabla_m19$x, tabla_m19$dx, type = "l", lwd = 2, col = "red", xlab = "Edad", ylab = "dx", main = "Defunciones dx (M 2019)")
+plot(tabla_m19$x, tabla_m19$mx, type = "l", log = "y", lwd = 2, col = "black", xlab = "Edad", ylab = "mx", main = "Riesgo mx (M 2019)")
+par(mfrow = c(1,1))
 
 ```
 
 ```{r}
 
-#2021
+### H 2021 lx, ndx y nmx
+par(mfrow = c(1,3))
+plot(tabla_h21$x, tabla_h21$lx, type = "l", lwd = 2, col = "blue", xlab = "Edad", ylab = "lx", main = "Sobrevivientes lx (H 2021)")
+plot(tabla_h21$x, tabla_h21$dx, type = "l", lwd = 2, col = "red", xlab = "Edad", ylab = "dx", main = "Defunciones dx (H 2021)")
+plot(tabla_h21$x, tabla_h21$mx, type = "l", log = "y", lwd = 2, col = "black", xlab = "Edad", ylab = "mx", main = "Riesgo mx (H 2021)")
+
+### M 2021 lx, ndx y nmx
+par(mfrow = c(1,3))
+plot(tabla_m21$x, tabla_m21$lx, type = "l", lwd = 2, col = "blue", xlab = "Edad", ylab = "lx", main = "Sobrevivientes lx (M 2021)")
+plot(tabla_m21$x, tabla_m21$dx, type = "l", lwd = 2, col = "red", xlab = "Edad", ylab = "dx", main = "Defunciones dx (M 2021)")
+plot(tabla_m21$x, tabla_m21$mx, type = "l", log = "y", lwd = 2, col = "black", xlab = "Edad", ylab = "mx", main = "Riesgo mx (M 2021)")
+par(mfrow = c(1,1))
 
 ```
 
+## Analisis de Resultados
 
-
+zzz
