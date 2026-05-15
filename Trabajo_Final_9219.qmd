@@ -137,7 +137,7 @@ A continuación, se presenta el diagrama de flujo el cual representa los pasos a
 
 # Datos de la Población en los Años 2010 y 2020
 
-Primero que todo  obtendremos los datos necesarios por medio de INEGI en formato csv y xlsx, los cuales nos interesan la población y las defunciones en ciertos rangos de edades diferenciadas por género, los datos obtenidos estan junto con otros años, pero gracias a excel podemos filtar los datos que nos interesan y asi tenerlos limpios,  estos son los datos obtenidos gracias a la limpieza de los censos de los años 2010 y 2020 tanto de hombres como de mujeres:
+Primero que todo obtendremos los datos necesarios por medio de INEGI en formato csv y xlsx, los cuales nos interesan la población y las defunciones en ciertos rangos de edades diferenciadas por género, los datos obtenidos estan junto con otros años, pero gracias a excel podemos filtar los datos que nos interesan y asi tenerlos limpios, estos son los datos obtenidos gracias a la limpieza de los censos de los años 2010 y 2020 tanto de hombres como de mujeres:
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 
@@ -163,51 +163,60 @@ Para conocer la población del 2019 y 2021, nos acercaremos con la "predicción 
 
 Para el cálculo de las tablas de mortalidad en años intercensales (2019 y 2021), es necesario establecer un puente matemático entre los censos de 2010 y 2020. A continuación, se definen las funciones algorítmicas que permiten proyectar tanto el volumen poblacional como las defunciones, asumiendo una tasa de crecimiento constante por grupo de edad.
 
-Para proyectar la población y defunciones a mitad de año ($t = 2019.5, 2021.5$), primero se determina la tasa de crecimiento intercensal ($r$) entre 2010 ($t_0$) y 2020 ($t_T$):
-$$r = \frac{\ln(N_T / N_0)}{t_T - t_0}$$
-Posteriormente, el volumen proyectado al tiempo $t$ se define como:
-$$N_t = N_0 \cdot e^{r(t - t_0)}$$
+Para proyectar la población y defunciones a mitad de año ($t = 2019.5, 2021.5$), primero se determina la tasa de crecimiento intercensal ($r$) entre 2010 ($t_0$) y 2020 ($t_T$): $$r = \frac{\ln(N_T / N_0)}{t_T - t_0}$$ Posteriormente, el volumen proyectado al tiempo $t$ se define como: $$N_t = N_0 \cdot e^{r(t - t_0)}$$
 
-Esto es la teoría de lo que se realizo en excel para obtener los datos de 2019 y 2021 a partir de los censos de 2010 y 2020.
+Esto es la teoría de lo que se realizo en excel para obtener los datos de 2019 y 2021 a partir de los censos de 2010 y 2020. Se tiene la tabla con las tasas de crecimiento intercensal entre 2010 y 2020
+
+```{r}
+tci <- fread("https://raw.githubusercontent.com/GilMelancolico/Tlaxcala_Proyecto_Demografia-9219/main/data/tci2010_2020.csv")
+knitr::kable(
+  tci,
+  caption = "Tabla de Tasas de Crecimiento Intercensal entre 2010 y 2020"
+)
+
+```
+
+A partir de estas se estimaron las poblaciones y defunciones en 2019 y 2021.
+
+```{r}
+deaths19 <- fread("https://raw.githubusercontent.com/GilMelancolico/Tlaxcala_Proyecto_Demografia-9219/main/data/deaths19.csv")
+knitr::kable(
+  deaths19,
+  caption = "Población y defunciones de Tlaxcala estimadas para 2019"
+)
+
+deaths21 <- fread("https://raw.githubusercontent.com/GilMelancolico/Tlaxcala_Proyecto_Demografia-9219/main/data/deaths21.csv")
+knitr::kable(
+  deaths21,
+  caption = "Población y defunciones de Tlaxcala estimadas para 2021"
+)
+
+```
 
 ### Tasas Centrales de Mortalidad
 
-($_nm_x$)Una vez proyectados los insumos a mitad de año, se calculan las tasas centrales de mortalidad para cada grupo de edad $[x, x+n)$ y por sexo, mediante el cociente de las defunciones proyectadas ($_{n}D_x$) entre la población media o expuesta al riesgo ($_{n}K_x$):
-$$_nm_x = \frac{_{n}D_x}{_{n}K_x}$$
+($_nm_x$)Una vez proyectados los insumos a mitad de año, se calculan las tasas centrales de mortalidad para cada grupo de edad $[x, x+n)$ y por sexo, mediante el cociente de las defunciones proyectadas ($_{n}D_x$) entre la población media o expuesta al riesgo ($_{n}K_x$): $$_nm_x = \frac{_{n}D_x}{_{n}K_x}$$
 
 ### Funciones de la Tabla de Vida
 
 A partir de las tasas centrales de mortalidad (${}_nm_x$), se derivan las funciones biométricas mediante las siguientes relaciones:
 
-* Probabilidad de fallecer ($\mathbf{{}_nq_x}$): Se transforma la tasa central en probabilidad asumiendo una distribución de las defunciones $a_x$ en el intervalo $[x, x+n)$:
-$${}_nq_x = \frac{n \cdot m_x}{1 + (n - a_x)m_x}$$
-Donde $q_\omega = 1$ para el último grupo de edad.
+-   Probabilidad de fallecer ($\mathbf{{}_nq_x}$): Se transforma la tasa central en probabilidad asumiendo una distribución de las defunciones $a_x$ en el intervalo $[x, x+n)$: $${}_nq_x = \frac{n \cdot m_x}{1 + (n - a_x)m_x}$$ Donde $q_\omega = 1$ para el último grupo de edad.
 
+-   Sobrevivientes ($\mathbf{l_x}$): Partiendo de un radicual de $l_0 = 100,000$: $$l_{x+n} = l_x \cdot (1 - q_x)$$
 
-* Sobrevivientes ($\mathbf{l_x}$): Partiendo de un radicual de $l_0 = 100,000$:
-$$l_{x+n} = l_x \cdot (1 - q_x)$$
+-   Defunciones teóricas ($_{n}d_x$): $$_{n}d_x = l_x - l_{x+n}$$
 
+-   Años-persona vividos ($\mathbf{{}_nL_x}$): Representa el tiempo vivido por la cohorte en el intervalo: $${}_nL_x = n \cdot l_{x+n} + a_x \cdot _{n}d_x$$ Para el grupo abierto final: $L_\omega = \frac{l_\omega}{m_\omega}$
 
-* Defunciones teóricas ($_{n}d_x$):
-$$_{n}d_x = l_x - l_{x+n}$$
+-   Esperanza de vida ($\mathbf{e_x}$): $$e_x = \frac{T_x}{l_x} \quad \text{donde} \quad T_x = \sum_{i=x}^{\omega} L_i$$
 
+-   Ajuste de Coale-Demeny para $\mathbf{a_x}$: para los primeros dos grupos de edad ($0$ y $1-4$), se utiliza el ajuste de Coale-Demeny para determinar la fracción de tiempo vivido, ya que la mortalidad infantil no es uniforme:
 
-* Años-persona vividos ($\mathbf{{}_nL_x}$): Representa el tiempo vivido por la cohorte en el intervalo:
-$${}_nL_x = n \cdot l_{x+n} + a_x \cdot _{n}d_x$$
-Para el grupo abierto final: $L_\omega = \frac{l_\omega}{m_\omega}$
-
-
-* Esperanza de vida ($\mathbf{e_x}$):
-$$e_x = \frac{T_x}{l_x} \quad \text{donde} \quad T_x = \sum_{i=x}^{\omega} L_i$$
-
-
-* Ajuste de Coale-Demeny para $\mathbf{a_x}$: para los primeros dos grupos de edad ($0$ y $1-4$), se utiliza el ajuste de Coale-Demeny para determinar la fracción de tiempo vivido, ya que la mortalidad infantil no es uniforme:
-
-  - Si $m_0 \geq 0.107$: $a_0 = 0.330$ (H) o $0.350$ (M).
-  - Si $m_0 < 0.107$: $a_0 = 0.045 + 2.684 \cdot m_0$ (H) o $0.053 + 2.800 \cdot m_0$ (M)
+    -   Si $m_0 \geq 0.107$: $a_0 = 0.330$ (H) o $0.350$ (M).
+    -   Si $m_0 < 0.107$: $a_0 = 0.045 + 2.684 \cdot m_0$ (H) o $0.053 + 2.800 \cdot m_0$ (M)
 
 De esta manera obtenemos los datos para la tabla de vida de 2010, 2019 y 2021 diferenciada por hombres y mujeres, para observar como se comportan las variables con nuestros datos
-
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 
@@ -578,7 +587,6 @@ knitr::kable(
 
 El análisis de ($e_0$) en Tlaxcala revela un retroceso histórico, destacando una caída considerable en la longevidad masculina que pasó de 75.00 años en 2010 a tan solo 64.71 años en 2021. Este descenso, que se agudizó durante el periodo intercensal y postcensal, indica que la crisis sanitaria impactó sobre una tendencia de supervivencia que ya venía bajo presión, situando la $e_0$ de los hombres en niveles comparables a décadas pasadas. Resulta particularmente alarmante que la brecha de género se haya duplicado con creces, escalando de 3.83 a 8.79 años de diferencia a favor de las mujeres; esta marcada sobremortalidad masculina evidencia que los factores de riesgo están "castigando desproporcionadamente "castigando" a los varones en el estado, afectando la estabilidad de la transición demográfica en la región.
 
-
 # Visualización de Resultados: Gráficas
 
 Estas son las gráficas de $l_x$, ${}_nd_x$ y ${}_nm_x$ respecto a los datos obtenidos de hombres y mujeres de los años 2010, 2019 y 2021
@@ -603,7 +611,6 @@ par(mfrow = c(1,1))
 
 \clearpage
 
-
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 
 ### H 2019 lx, ndx y nmx
@@ -622,6 +629,7 @@ plot(tabla_m19$x, tabla_m19$mx, type = "l", log = "y", lwd = 2, col = "black", x
 par(mfrow = c(1,1))
 
 ```
+
 \clearpage
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
@@ -640,6 +648,7 @@ plot(tabla_m21$x, tabla_m21$mx, type = "l", log = "y", lwd = 2, col = "black", x
 par(mfrow = c(1,1))
 
 ```
+
 \clearpage
 
 Aqui estan las gráficas de la esperanza de vida de los años 2010, 2019 y 2021 diferenciadas entre hombres y mujeres
@@ -680,20 +689,21 @@ plot(tabla_m21$x, tabla_m21$ex, type = "l", lwd = 2, col = "darkgreen",
 par(mfrow = c(1,1))
 
 ```
+
 \clearpage
 
 # Analisis de Resultados
 
-El impacto de la crisis sanitaria en Tlaxcala se manifiesta como un choque demográfico que interrumpió la dinámica de sobrevivencia de la población. 
+El impacto de la crisis sanitaria en Tlaxcala se manifiesta como un choque demográfico que interrumpió la dinámica de sobrevivencia de la población.
 
 Al comparar el escenario pre-pandemia (2019) con el pico de la crisis (2021), observamos una caída en la esperanza de vida al nacer ($\boldsymbol{e_0}$) de 2.01 años en hombres y 1.04 años en mujeres, este descenso no es uniforme, sino que se concentra en el aumento drástico de las tasas de mortalidad ($\boldsymbol{{}_nm_x}$) en edades adultas y avanzadas.
 
-En los hombres, el riesgo de morir en el grupo de 60 a 65 años aumentó de 0.0342 a 0.0418, lo que representa un incremento del 22% en la intensidad mortal para ese rango de edad en solo dos años, esta "sobremortalidad" provocó que la cohorte de sobrevivientes ($\boldsymbol{l_x}$) se redujera, mientras que en 2019 el 48% de los hombres alcanzaba los 70 años, para 2021 esa cifra bajó al 42%. 
+En los hombres, el riesgo de morir en el grupo de 60 a 65 años aumentó de 0.0342 a 0.0418, lo que representa un incremento del 22% en la intensidad mortal para ese rango de edad en solo dos años, esta "sobremortalidad" provocó que la cohorte de sobrevivientes ($\boldsymbol{l_x}$) se redujera, mientras que en 2019 el 48% de los hombres alcanzaba los 70 años, para 2021 esa cifra bajó al 42%.
 
 En las mujeres, aunque el impacto fue menor, la tendencia en las defunciones ($\boldsymbol{{}_nd_x}$) a partir de los 50 años afirma que la pandemia actuo afecto considerablemente, revirtiendo años de ganancias en salud publica y dejando una estructura poblacional con una menor probabilidad de alcanzar edades mas grandes.
 
 ## Datos Extra:
 
-* la mortalidad infantil (${}_1m_0$ o $m_0$) en las tablas de 2021 no se disparo tanto como la de adultos. Esto confirma la teoría de que el COVID-19 fue "selectivo" de cierta manera.
+-   la mortalidad infantil (${}_1m_0$ o $m_0$) en las tablas de 2021 no se disparo tanto como la de adultos. Esto confirma la teoría de que el COVID-19 fue "selectivo" de cierta manera.
 
-*  La cantidad de personas que llegan a los 90 años ($\boldsymbol{l_{90}}$) pasó de 6,489 en 2019 a solo 4,609 en 2021, es decir, se perdio un 30% aproximadamente 
+-   La cantidad de personas que llegan a los 90 años ($\boldsymbol{l_{90}}$) pasó de 6,489 en 2019 a solo 4,609 en 2021, es decir, se perdio un 30% aproximadamente
