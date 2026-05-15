@@ -1,29 +1,63 @@
 ---
-title: "Trabajo Final Tlaxcala"
+title: |
+  \Huge \textbf{Análisis Demográfico: Tlaxcala}
+  \vspace{0.5cm}
+subtitle: |
+  Años: 2010, 2019 y 2021
+  
+  \vspace{1cm}
+  
+  \begin{center}
+  \includegraphics[width=4cm]{data/logo_unam.png}
+  \end{center}
+  
+  \vspace{1cm}
+  
+  \large Universidad Nacional Autónoma de México
 author: 
-- "Nicolas de Silva Nacenta"
-- "Emmanuel Escobar Gutierrez"
+  - "Nicolas de Silva Nacenta"
+  - "Emmanuel Escobar Gutiérrez"
+abstract: |
+  Este estudio presenta la construcción de tablas de vida abreviadas para el estado de Tlaxcala, analizando el impacto a travez del tiempo en la esperanza de vida y la estructura de mortalidad por sexo y al final como afecto la crisis sanitaria.
+lang: es
 format:
   pdf:
+    classoption: titlepage
+    toc: true
+    toc-title: "Índice"
+    number-sections: true
+    geometry:
+      - top=4cm
+      - bottom=4cm
+      - left=4cm
+      - right=4cm
+    include-in-header:
+      text: |
+        \usepackage{graphicx}
     documentclass: article
 editor: visual
 ---
 
-## \textcolor{violet}{Introducción}
+\newpage
 
-Tlaxcala es el estado más pequeño de México, con una extensión de $4016km^2$ y una población de $1,342,977$ habitantes. La estructura demográfica refleja una población mayoritariamente joven, con una edad mediana de aproximadamente $28$ años, y una predominancia femenina del $51.6\%$. Esta composición etaria sugiere que, si bien la tasa bruta de mortalidad podría mantenerse relativamente baja debido al volumen de población en edades no avanzadas, las causas de defunción pueden estar fuertemente marcadas por factores exógenos en jóvenes (como accidentes) y un avance en la transición epidemiológica hacia enfermedades crónico-degenerativas en la población adulta.
+# Introducción
 
-En el ámbito socioeconómico, el estado presenta una tasa de desempleo del $2.54\%$ y una tasa de participación laboral del $60.2\%$. Sin embargo, un factor determinante para el análisis de la mortalidad es que el $70.9\%$ de la población ocupada se encuentra en el sector informal. Esta alta concentración en la informalidad se traduce en una menor cobertura de seguridad social (como IMSS o ISSSTE), lo que incrementa el gasto de bolsillo en salud, retrasa el diagnóstico oportuno de enfermedades y dificulta el apego a tratamientos prolongados. Estos factores impactan directamente en la esperanza de vida al nacer, la cual se sitúa en un promedio de $75$ años, siendo estadísticamente mayor para las mujeres.
+El estudio de la mortalidad y la supervivencia en una población requiere, como paso analítico fundamental, la comprensión de su estructura por edad y sexo. Esta composición no solo es el resultado de eventos demográficos pasados (fecundidad, mortalidad y migración), sino que constituye la base biológica sobre la cual se proyectan los riesgos epidemiológicos y las demandas de infraestructura social. En el caso de Tlaxcala, esta estructura presenta matices particulares derivados de su escala territorial y su acelerada transición demográfica.
 
-A diferencia de otros estados donde la población se concentra en una sola gran metrópoli, Tlaxcala presenta un modelo de dispersión urbana y periurbana. Sus habitantes se reparten en una constelación de municipios interconectados como Tlaxcala, Huamantla, San Pablo del Monte, Apizaco y zonas como Xicohténcatl, sin que ninguno domine de forma absoluta. Esta estructura plantea retos severos en infraestructura, movilidad y, sobre todo, en el acceso efectivo a servicios de salud de tercer nivel. Aunque la cobertura de servicios de salud reporta un alcance del $71.8\%$, la fragmentación territorial puede retrasar la atención de urgencias médicas (obstétricas, cardiovasculares o traumatológicas), elevando la mortalidad por causas prevenibles. Además, la cercanía de asentamientos humanos a corredores industriales en estas zonas dispersas se asocia a factores de riesgo ambiental, los cuales influyen en patrones de morbilidad y mortalidad específicos de la región, como la notable incidencia de enfermedad renal crónica.
+La siguiente gráfica presenta la pirámide de población de Tlaxcala proyectada al año 2026. Este gráfico de barras dobles permite observar de manera instantánea la distribución etaria del estado. A diferencia de las estructuras expansivas de décadas anteriores, la pirámide actual muestra un perfil de tipo constrictivo.
 
-## \textcolor{violet}{Análisis De Tlaxcala}
+Este estrechamiento de la base indica una reducción sostenida en los niveles de fecundidad, mientras que el abultamiento en los grupos de edad adulta (20 a 45 años) evidencia el peso del bono demográfico. No obstante, el ensanchamiento gradual de la cúspide advierte sobre un proceso de envejecimiento poblacional en marcha, donde la mayor supervivencia femenina subraya una feminización de la vejez que debe ser considerada en las políticas de salud pública.
 
-```{r}
-# 1. Remover los objetos
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+#| echo: false
+#| message: false
+#| warning: false
+
+# Remover los objetos
 rm(list = ls())
 
-# 2. Instalar paquetes 
+# Paquetes 
 
 library(lubridate)
 library(data.table)
@@ -34,27 +68,16 @@ library(tidyr)
 library(readxl)
 #library(tinytex)
 
-# 3. Descargar tablas de datos
+# Descargar tablas de datos
 pop <- fread("https://repodatos.atdt.gob.mx/CONAPO/proyecciones/00_Pob_Mitad_1950_2070.csv")
-
-# 4. Exploración de la tabla de población
-table(pop$ENTIDAD)
-table(pop$CVE_GEO)
-table(pop$ANIO)
-
-names(pop)
-sum(pop$POBLACION)
 
 # Filtrar Estado
 
 tlx <- pop[ENTIDAD == "Tlaxcala" & ANIO == "2026", .(SEXO, EDAD, POBLACION)]
-tlx
 
 ```
 
-### \textcolor{purple}{Tabla (Piramide)}
-
-```{r}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 
 # Agrupamos por rangos de 5 años para que coincida con la imagen
 tlx_pyramid <- tlx %>%
@@ -88,113 +111,105 @@ ggplot(tlx_pyramid, aes(x = EDAD_GRP, y = POBLACION_GRAF, fill = SEXO)) +
 
 ```
 
-The `echo: false` option disables the printing of code (only output is displayed).
+Para cuantificar las observaciones de la pirámide, se han calculado los siguientes indicadores clave que sintetizan la realidad del estado:
 
-## \textcolor{violet}{Lectura De La Tabla}
+### Edad Mediana:
 
-La pirámide de Tlaxcala al $2026$ revela una transición demográfica en la que el estrechamiento de la base $(0-9 \text{ años})$ refleja una caída en la natalidad, desplazando el mayor peso poblacional hacia el lado de los jóvenes de entre $15$ y $29$ años. Este perfil indica que el estado cuenta actualmente con su mayor capacidad de fuerza productiva, aunque el ensanchamiento visible en los rangos de edades medias confirma un proceso de envejecimiento gradual de la población, todo bajo una distribución donde las mujeres representan el $51.6\%$ del total debido a su mayor esperanza de vida frente al $48.4\%$ de los hombres.
+Situada en los 28 años, este indicador divide a la población en dos grupos numéricamente iguales, confirmando que Tlaxcala es aún un estado joven, pero con una tendencia clara hacia la madurez.
 
-## \textcolor{violet}{Diagrama de Flujo}
+### Índice de Masculinidad:
 
-A continuación, se presenta el esquema metodológico diseñado por nuestra firma para la construcción de las tablas de mortalidad del estado de Tlaxcala correspondientes a los años 2010, 2019 y 2021.El objetivo de este diagrama de flujo es proporcionar al cliente total transparencia sobre el procedimiento algorítmico utilizado. El esquema detalla paso a paso la secuencia lógica de nuestros cálculos actuariales: desde la recopilación y conciliación de los datos demográficos brutos (población a mitad de año y registro de defunciones), pasando por la estimación de probabilidades de muerte en una cohorte teórica, hasta culminar con la obtención de nuestro indicador principal, la esperanza de vida ($e_x$).
+Con una proporción de 93 hombres por cada 100 mujeres, se observa un superávit femenino que se acentúa en las edades avanzadas, factor determinante para el análisis de la mortalidad diferencial por sexo.
 
-```         
-[ INICIO: Recopilación de Datos ]
-                     |
-                     v
-+-----------------------------------------+
-| 1. Datos Base                           |
-|    - Población a mitad de año (P_x)     |
-|    - Defunciones registradas (D_x)      |
-+-----------------------------------------+
-                     |
-                     v
-+-----------------------------------------+
-| 2. Tasa Central de Mortalidad (m_x)     |
-|    Cálculo: m_x = D_x / P_x             |
-+-----------------------------------------+
-                     |
-                     v
-+-----------------------------------------+
-| 3. Probabilidad de Muerte (q_x)         |
-|    Conversión matemática de m_x a q_x   |
-+-----------------------------------------+
-                     |
-                     v
-+-----------------------------------------+
-| 4. Sobrevivientes Exactos (l_x)         |
-|    Se asume raíz inicial l_0 = 100,000  |
-|    Cálculo: l_{x+n} = l_x * (1 - q_x)   |
-+-----------------------------------------+
-                     |
-                     v
-+-----------------------------------------+
-| 5. Defunciones de la Tabla (d_x)        |
-|    Cálculo: d_x = l_x * q_x             |
-+-----------------------------------------+
-                     |
-                     v
-+-----------------------------------------+
-| 6. Años-Persona Vividos (L_x)           |
-|    Años vividos por la cohorte en x     |
-+-----------------------------------------+
-                     |
-                     v
-+-----------------------------------------+
-| 7. Años-Persona Totales (T_x)           |
-|    Suma acumulada de L_x desde abajo    |
-+-----------------------------------------+
-                     |
-                     v
-+-----------------------------------------+
-| 8. Esperanza de Vida (e_x)              |
-|    Cálculo: e_x = T_x / l_x             |
-+-----------------------------------------+
-                     |
-                     v
-       [ FIN: Tabla de Vida Generada ]
-```
+### Relación de Dependencia:
 
-## Datos de la Población en los Años 2010 y 2020
+Este indicador mide la carga económica potencial de la población en edades no productivas (niños y adultos mayores) sobre la población en edad de trabajar. La estructura actual sugiere una ventana de oportunidad económica (bono demográfico), aunque la creciente informalidad laboral (70.9%) limita la capacidad de ahorro y previsión para el retiro de estos grupos.
 
-Primero que todo estos son los datos obtenidos gracias a los censos de los años 2010 y 2020 tanto de hombres como de mujeres:
+Esta caracterización demográfica sirve como marco de referencia para analizar las tablas de vida que se presentan a continuación. En ellas, examinaremos el comportamiento de la población de los años 2010, 2019 y 2021, observando la evolución de las funciones de supervivencia ($l_x$), defunciones (${}_nd_x$), riesgo de mortalidad (${}_nm_x$) y esperanza de vida ($e^0_x$) principalmente a través de los diferentes rangos de edad.
 
-```{r}
+# Diagrama de Flujo
+
+A continuación, se presenta el diagrama de flujo el cual representa los pasos a seguir para llegar a nuestra tabla de vida y ademas visualizar algunas de las variables en una gráfica, como lo son $l_x$, ${}_nd_x$, ${}_nm_x$ y $e^0_x$, se calcularan todas pero nos enfocaremos en estas en la parte visual.
+
+![](data/flujo.png){fig-align="center" width="110%"}
+
+\clearpage
+
+# Datos de la Población en los Años 2010 y 2020
+
+Primero que todo  obtendremos los datos necesarios por medio de INEGI en formato csv y xlsx, los cuales nos interesan la población y las defunciones en ciertos rangos de edades diferenciadas por género, los datos obtenidos estan junto con otros años, pero gracias a excel podemos filtar los datos que nos interesan y asi tenerlos limpios,  estos son los datos obtenidos gracias a la limpieza de los censos de los años 2010 y 2020 tanto de hombres como de mujeres:
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 
 deaths10 <- fread("data/2010Tlx_N,D.csv")
 knitr::kable(
   deaths10,
-  caption = "Muertes de Tlx 2010"
+  caption = "Tabla de Tlx 2010"
 )
 
 deaths20 <- fread("data/2020Tlx_N,D.csv")
 knitr::kable(
   deaths20,
-  caption = "Muertes de Tlx 2020"
+  caption = "Tabla de Tlx 2020"
 )
 
 ```
 
-Para conocer la población del 2019 y 2021, nos acercaremos con la "predicción exponencial", pues no hay censos de la poblacion en esos años, ya que son cada 10 años en México, usaremos los censos de población y defunciones en el 2010 y 2020, lo haremos por cada género.
+\textcolor{violet}{Nota: La notación de x es igual a la edad, al igual que la de n que se vera despues es los años que se avanzan, por ejemplo: ${}_nd_x$=${}_5d_{10}$ son las defunciones de edades entre 10 y 15 años}
 
+Para conocer la población del 2019 y 2021, nos acercaremos con la "predicción exponencial", pues no hay censos de la poblacion en esos años, ya que son cada 10 años en México, usaremos los censos de población y defunciones en el 2010 y 2020, lo haremos por cada género. Lo fundamental es proyectar al 30 de junio, ya que esa "población a mitad de año" representa la población media o expuesta al riesgo, esto es muy util sin la nacesidad de tner un censo en estos años.
 
-```{r}
-
-### Esto aun no se para que lo vamos a usar, lo vimos en clase pero ni idea, en la entrega final lo borramos si no se ocupa
-
-mort <- fread("https://population.un.org/wpp/assets/Excel%20Files/1_Indicator%20(Standard)/CSV_FILES/WPP2024_DeathsBySingleAgeSex_Medium_1950-2023.csv.gz")
-
-APV <- fread("https://population.un.org/wpp/assets/Excel%20Files/1_Indicator%20(Standard)/CSV_FILES/WPP2024_PopulationBySingleAgeSex_Medium_1950-2023.csv.gz")
-
-## LocID 484 México y 392 Japón
-
-```
-
-## \textcolor{violet}{Metodología y Proyección Exponencial}
+# Metodología
 
 Para el cálculo de las tablas de mortalidad en años intercensales (2019 y 2021), es necesario establecer un puente matemático entre los censos de 2010 y 2020. A continuación, se definen las funciones algorítmicas que permiten proyectar tanto el volumen poblacional como las defunciones, asumiendo una tasa de crecimiento constante por grupo de edad.
 
-```{r}
+Para proyectar la población y defunciones a mitad de año ($t = 2019.5, 2021.5$), primero se determina la tasa de crecimiento intercensal ($r$) entre 2010 ($t_0$) y 2020 ($t_T$):
+$$r = \frac{\ln(N_T / N_0)}{t_T - t_0}$$
+Posteriormente, el volumen proyectado al tiempo $t$ se define como:
+$$N_t = N_0 \cdot e^{r(t - t_0)}$$
+
+Esto es la teoría de lo que se realizo en excel para obtener los datos de 2019 y 2021 a partir de los censos de 2010 y 2020.
+
+### Tasas Centrales de Mortalidad
+
+($_nm_x$)Una vez proyectados los insumos a mitad de año, se calculan las tasas centrales de mortalidad para cada grupo de edad $[x, x+n)$ y por sexo, mediante el cociente de las defunciones proyectadas ($_{n}D_x$) entre la población media o expuesta al riesgo ($_{n}K_x$):
+$$_nm_x = \frac{_{n}D_x}{_{n}K_x}$$
+
+### Funciones de la Tabla de Vida
+
+A partir de las tasas centrales de mortalidad (${}_nm_x$), se derivan las funciones biométricas mediante las siguientes relaciones:
+
+* Probabilidad de fallecer ($\mathbf{{}_nq_x}$): Se transforma la tasa central en probabilidad asumiendo una distribución de las defunciones $a_x$ en el intervalo $[x, x+n)$:
+$${}_nq_x = \frac{n \cdot m_x}{1 + (n - a_x)m_x}$$
+Donde $q_\omega = 1$ para el último grupo de edad.
+
+
+* Sobrevivientes ($\mathbf{l_x}$): Partiendo de un radicual de $l_0 = 100,000$:
+$$l_{x+n} = l_x \cdot (1 - q_x)$$
+
+
+* Defunciones teóricas ($_{n}d_x$):
+$$_{n}d_x = l_x - l_{x+n}$$
+
+
+* Años-persona vividos ($\mathbf{{}_nL_x}$): Representa el tiempo vivido por la cohorte en el intervalo:
+$${}_nL_x = n \cdot l_{x+n} + a_x \cdot _{n}d_x$$
+Para el grupo abierto final: $L_\omega = \frac{l_\omega}{m_\omega}$
+
+
+* Esperanza de vida ($\mathbf{e_x}$):
+$$e_x = \frac{T_x}{l_x} \quad \text{donde} \quad T_x = \sum_{i=x}^{\omega} L_i$$
+
+
+* Ajuste de Coale-Demeny para $\mathbf{a_x}$: para los primeros dos grupos de edad ($0$ y $1-4$), se utiliza el ajuste de Coale-Demeny para determinar la fracción de tiempo vivido, ya que la mortalidad infantil no es uniforme:
+
+  - Si $m_0 \geq 0.107$: $a_0 = 0.330$ (H) o $0.350$ (M).
+  - Si $m_0 < 0.107$: $a_0 = 0.045 + 2.684 \cdot m_0$ (H) o $0.053 + 2.800 \cdot m_0$ (M)
+
+De esta manera obtenemos los datos para la tabla de vida de 2010, 2019 y 2021 diferenciada por hombres y mujeres, para observar como se comportan las variables con nuestros datos
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 
 ruta_archivo <- "C:/Users/Mario Escobar/Downloads/Ciencias/Demografia/Demography_9219/Demography_9219/data/Tlx_tabla_mort.xlsx"
 
@@ -358,9 +373,10 @@ tabla_mujeres <- lt_abr(
 
 ```
 
-primero obtengamos la tabla de vida de 2010 de hombres y mujeres para observar como se comportan las variables con nuestros datos
+\clearpage
 
-```{r, results='asis'}
+```{r echo=FALSE, message=FALSE, warning=FALSE, results='asis'}
+
 ## hombres 2010
 
 cat("\\setlength{\\tabcolsep}{2pt}") 
@@ -370,7 +386,7 @@ knitr::kable(
   tabla_hombres,
   format = "latex",
   booktabs = TRUE,
-  caption = "Tabla de Vida Abreviada: Tlaxcala 2010 (Hombres)",
+  caption = "Tabla de Vida Tlaxcala 2010 (H)",
   align = "c",
   digits = 4,
   format.args = list(
@@ -391,7 +407,7 @@ knitr::kable(
   tabla_mujeres,
   format = "latex",
   booktabs = TRUE,
-  caption = "Tabla de Vida Abreviada: Tlaxcala 2010 (Mujeres)",
+  caption = "Tabla de Vida Tlaxcala 2010 (M)",
   align = "c",
   digits = 4,
   format.args = list(
@@ -405,127 +421,70 @@ cat("\\setlength{\\tabcolsep}{6pt}")
 
 ```
 
-Ahora esto es lo que hay que hacer y lo obtenido de predecir 2019 y 2021 con $l_x$ = 100,000
+\clearpage
 
-```{r}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 
-### Carga y Limpieza
+### 2019
 
-deaths10 <- fread("data/2010Tlx_N,D.csv")
-deaths20 <- fread("data/2020Tlx_N,D.csv")
+tlx19 <- read_excel(ruta_archivo, sheet = "2019")
 
-# 3. Funciones de limpieza mejoradas
-clean_2010 <- function(x) {
-  # Forzamos a que el punto se ignore y se trate como miles
-  x_num <- as.numeric(as.character(x))
-  ifelse(x_num < 100, x_num * 1000, x_num)
-}
-
-clean_2020 <- function(x) {
-  as.numeric(gsub("[[:space:]]", "", as.character(x)))
-}
-
-# Limpieza de tablas
-
-tlx10 <- deaths10 %>%
+tlx19 <- tlx19 %>%
+  rename(x = 1, n = 2, K_h = 3, K_m = 4, D_h = 5, D_m = 6) %>%
   mutate(
-    x = as.numeric(gsub("\\+", "", x)), # Quita el "+" de "95+"
-    N_h = clean_2010(N_hombre),
-    N_m = clean_2010(N_mujer),
-    D_h = as.numeric(D_hombre),
-    D_m = as.numeric(D_mujer)
+    x = as.numeric(ifelse(x == "95+", 95, x)),
+    n = as.numeric(n)
   )
 
-tlx20 <- deaths20 %>%
-  mutate(
-    x = as.numeric(gsub("\\+", "", x)),
-    N_h = clean_2020(N_hombre),
-    N_m = clean_2020(N_mujer),
-    D_h = clean_2020(D_hombre),
-    D_m = clean_2020(D_mujer)
-  )
-
-```
-
-```{r}
-
-### Proyecciones 2019 y 2021
-
-# Usamos decimal_date para que la diferencia de tiempo sea exacta (aprox 9.72 años)
-t_10 <- decimal_date(as.Date("2010-06-25"))
-t_20 <- decimal_date(as.Date("2020-03-15"))
-
-# Proyectamos a mitad de año (Julio) para 2019 y 2021
-t_19 <- 2019.5
-t_21 <- 2021.5
-
-# Crear tabla 2019 proyectada
-tlx19 <- tlx10 %>%
-  select(x) %>%
-  mutate(
-    n = c(diff(x), 5), # Definimos el ancho del intervalo de edad
-    N_h = expo(tlx10$N_h, tlx20$N_h, t_10, t_20, t_19),
-    N_m = expo(tlx10$N_m, tlx20$N_m, t_10, t_20, t_19),
-    D_h = expo(tlx10$D_h, tlx20$D_h, t_10, t_20, t_19),
-    D_m = expo(tlx10$D_m, tlx20$D_m, t_10, t_20, t_19)
-  )
-
-# Crear tabla 2021 proyectada
-tlx21 <- tlx10 %>%
-  select(x) %>%
-  mutate(
-    n = c(diff(x), 5),
-    N_h = expo(tlx10$N_h, tlx20$N_h, t_10, t_20, t_21),
-    N_m = expo(tlx10$N_m, tlx20$N_m, t_10, t_20, t_21),
-    D_h = expo(tlx10$D_h, tlx20$D_h, t_10, t_20, t_21),
-    D_m = expo(tlx10$D_m, tlx20$D_m, t_10, t_20, t_21)
-  )
-
-```
-
-```{r}
-
-### Generacion de tablas 2019 y 2021
-
-# Hombres 2019
 tabla_h19 <- lt_abr(
   x = tlx19$x, 
   n = tlx19$n, 
-  mx = tlx19$D_h / tlx19$N_h, 
+  mx = tlx19$D_h / tlx19$K_h, 
   sex = "h"
 )
 
-# Mujeres 2019
 tabla_m19 <- lt_abr(
   x = tlx19$x, 
   n = tlx19$n, 
-  mx = tlx19$D_m / tlx19$N_m, 
+  mx = tlx19$D_m / tlx19$K_m, 
   sex = "f"
 )
 
-# Hombres 2021
+### 2021
+
+tlx21 <- read_excel(ruta_archivo, sheet = "2021")
+
+tlx21 <- tlx21 %>%
+  rename(x = 1, n = 2, K_h = 3, K_m = 4, D_h = 5, D_m = 6) %>%
+  mutate(
+    x = as.numeric(ifelse(x == "95+", 95, x)),
+    n = as.numeric(n)
+  )
+
 tabla_h21 <- lt_abr(
   x = tlx21$x, 
   n = tlx21$n, 
-  mx = tlx21$D_h / tlx21$N_h, 
+  mx = tlx21$D_h / tlx21$K_h,
   sex = "h"
 )
 
-# Mujeres 2021
 tabla_m21 <- lt_abr(
   x = tlx21$x, 
   n = tlx21$n, 
-  mx = tlx21$D_m / tlx21$N_m, 
+  mx = tlx21$D_m / tlx21$K_m, 
   sex = "f"
 )
 
 ```
 
-```{r, results='asis'}
+\clearpage
 
-# 2019 
+```{r echo=FALSE, message=FALSE, warning=FALSE, results='asis'}
 
-# Hombres 2019
+### Tablas 2019 y 2021
+
+# 2019 H
+
 cat("\\setlength{\\tabcolsep}{2pt}") 
 cat("\\tiny") 
 
@@ -533,65 +492,43 @@ knitr::kable(
   tabla_h19,
   format = "latex",
   booktabs = TRUE,
-  caption = "Tabla de Vida Abreviada: Tlaxcala 2019 (Hombres)",
+  caption = "Tabla de Vida Tlaxcala 2019 (H)",
   align = "c",
   digits = 4,
   format.args = list(big.mark = ".", decimal.mark = ",")
 )
 
-cat("\\normalsize")
-cat("\\setlength{\\tabcolsep}{6pt}")
-
-# Mujeres 2019
-cat("\\setlength{\\tabcolsep}{2pt}") 
-cat("\\tiny") 
+# 2019 M
 
 knitr::kable(
   tabla_m19,
   format = "latex",
   booktabs = TRUE,
-  caption = "Tabla de Vida Abreviada: Tlaxcala 2019 (Mujeres)",
+  caption = "Tabla de Vida Tlaxcala 2019 (M)",
   align = "c",
   digits = 4,
   format.args = list(big.mark = ".", decimal.mark = ",")
 )
 
-cat("\\normalsize")
-cat("\\setlength{\\tabcolsep}{6pt}")
-
-```
-
-
-```{r, results='asis'}
-
-# 2021
-
-# Hombres 2021
-cat("\\setlength{\\tabcolsep}{2pt}") 
-cat("\\tiny") 
+# 2021 H
 
 knitr::kable(
   tabla_h21,
   format = "latex",
   booktabs = TRUE,
-  caption = "Tabla de Vida Abreviada: Tlaxcala 2021 (Hombres)",
+  caption = "Tabla de Vida Tlaxcala 2021 (H)",
   align = "c",
   digits = 4,
   format.args = list(big.mark = ".", decimal.mark = ",")
 )
 
-cat("\\normalsize")
-cat("\\setlength{\\tabcolsep}{6pt}")
-
-# Mujeres 2021
-cat("\\setlength{\\tabcolsep}{2pt}") 
-cat("\\tiny") 
+# 2021 M
 
 knitr::kable(
   tabla_m21,
   format = "latex",
   booktabs = TRUE,
-  caption = "Tabla de Vida Abreviada: Tlaxcala 2021 (Mujeres)",
+  caption = "Tabla de Vida Tlaxcala 2021 (M)",
   align = "c",
   digits = 4,
   format.args = list(big.mark = ".", decimal.mark = ",")
@@ -602,65 +539,161 @@ cat("\\setlength{\\tabcolsep}{6pt}")
 
 ```
 
+\clearpage
 
-\textcolor{violet}{Visualización de Resultados: Gráficas}
+Aqui hay una tabla mas compacta sobre las esperanzas de vida de las mujeres y hombres en 2010, 2019 y 2021
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+# 1. Creamos el data frame con los valores de e0 (primera fila de ex)
+resumen_esperanza <- data.frame(
+  Año = c("2010", "2019", "2021"),
+  Hombres = c(
+    tabla_hombres$ex[1], 
+    tabla_h19$ex[1], 
+    tabla_h21$ex[1]
+  ),
+  Mujeres = c(
+    tabla_mujeres$ex[1], 
+    tabla_m19$ex[1], 
+    tabla_m21$ex[1]
+  )
+)
+
+# 2. Calculamos la brecha por sexo (opcional, pero muy común en la Facultad)
+resumen_esperanza$Brecha <- resumen_esperanza$Mujeres - resumen_esperanza$Hombres
+
+# 3. Generamos la tabla con knitr::kable
+knitr::kable(
+  resumen_esperanza,
+  digits = 2,
+  align = "c",
+  booktabs = TRUE,
+  col.names = c("Año", "Hombres ($e_0$)", "Mujeres ($e_0$)", "Brecha (M - H)"),
+  escape = FALSE,
+  caption = "Comparativa de la Esperanza de Vida al Nacer en Tlaxcala (2010-2021)"
+)
+
+```
+
+El análisis de ($e_0$) en Tlaxcala revela un retroceso histórico, destacando una caída considerable en la longevidad masculina que pasó de 75.00 años en 2010 a tan solo 64.71 años en 2021. Este descenso, que se agudizó durante el periodo intercensal y postcensal, indica que la crisis sanitaria impactó sobre una tendencia de supervivencia que ya venía bajo presión, situando la $e_0$ de los hombres en niveles comparables a décadas pasadas. Resulta particularmente alarmante que la brecha de género se haya duplicado con creces, escalando de 3.83 a 8.79 años de diferencia a favor de las mujeres; esta marcada sobremortalidad masculina evidencia que los factores de riesgo están "castigando desproporcionadamente "castigando" a los varones en el estado, afectando la estabilidad de la transición demográfica en la región.
+
+
+# Visualización de Resultados: Gráficas
 
 Estas son las gráficas de $l_x$, ${}_nd_x$ y ${}_nm_x$ respecto a los datos obtenidos de hombres y mujeres de los años 2010, 2019 y 2021
 
-```{r}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 
 ### H 2010 lx, ndx y nmx
 
 par(mfrow = c(1,3))
-plot(tabla_hombres$x, tabla_hombres$lx, type = "l", lwd = 2, col = "blue", xlab = "Edad", ylab = "lx", main = "Sobrevivientes lx (H 2010)")
-plot(tabla_hombres$x, tabla_hombres$dx, type = "l", lwd = 2, col = "red", xlab = "Edad", ylab = "dx", main = "Defunciones dx (H 2010)")
-plot(tabla_hombres$x, tabla_hombres$mx, type = "l", log = "y", lwd = 2, col = "black", xlab = "Edad", ylab = "mx", main = "Riesgo mx (H 2010)")
+plot(tabla_hombres$x, tabla_hombres$lx, type = "l", lwd = 2, col = "blue", xlab = "Edad", ylab = "lx", main = "lx (H 2010)")
+plot(tabla_hombres$x, tabla_hombres$dx, type = "l", lwd = 2, col = "red", xlab = "Edad", ylab = "dx", main = "ndx (H 2010)")
+plot(tabla_hombres$x, tabla_hombres$mx, type = "l", log = "y", lwd = 2, col = "black", xlab = "Edad", ylab = "mx", main = "nmx (H 2010)")
 
 ### M 2010 lx, ndx y nmx
 par(mfrow = c(1,3))
-plot(tabla_mujeres$x, tabla_mujeres$lx, type = "l", lwd = 2, col = "blue", xlab = "Edad", ylab = "lx", main = "Sobrevivientes lx (M 2010)")
-plot(tabla_mujeres$x, tabla_mujeres$dx, type = "l", lwd = 2, col = "red", xlab = "Edad", ylab = "dx", main = "Defunciones dx (M 2010)")
-plot(tabla_mujeres$x, tabla_mujeres$mx, type = "l", log = "y", lwd = 2, col = "black", xlab = "Edad", ylab = "mx", main = "Riesgo mx (M 2010)")
+plot(tabla_mujeres$x, tabla_mujeres$lx, type = "l", lwd = 2, col = "blue", xlab = "Edad", ylab = "lx", main = "lx (M 2010)")
+plot(tabla_mujeres$x, tabla_mujeres$dx, type = "l", lwd = 2, col = "red", xlab = "Edad", ylab = "dx", main = "ndx (M 2010)")
+plot(tabla_mujeres$x, tabla_mujeres$mx, type = "l", log = "y", lwd = 2, col = "black", xlab = "Edad", ylab = "mx", main = " nmx (M 2010)")
 par(mfrow = c(1,1))
 
 ```
 
+\clearpage
 
-```{r}
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
 ### H 2019 lx, ndx y nmx
 
 par(mfrow = c(1,3))
-plot(tabla_h19$x, tabla_h19$lx, type = "l", lwd = 2, col = "blue", xlab = "Edad", ylab = "lx", main = "Sobrevivientes lx (H 2019)")
-plot(tabla_h19$x, tabla_h19$dx, type = "l", lwd = 2, col = "red", xlab = "Edad", ylab = "dx", main = "Defunciones dx (H 2019)")
-plot(tabla_h19$x, tabla_h19$mx, type = "l", log = "y", lwd = 2, col = "black", xlab = "Edad", ylab = "mx", main = "Riesgo mx (H 2019)")
+plot(tabla_h19$x, tabla_h19$lx, type = "l", lwd = 2, col = "blue", xlab = "Edad", ylab = "lx", main = "lx (H 2019)")
+plot(tabla_h19$x, tabla_h19$dx, type = "l", lwd = 2, col = "red", xlab = "Edad", ylab = "dx", main = "mdx (H 2019)")
+plot(tabla_h19$x, tabla_h19$mx, type = "l", log = "y", lwd = 2, col = "black", xlab = "Edad", ylab = "mx", main = "mmx (H 2019)")
 
 ### M 2019 lx, ndx y nmx
 
 par(mfrow = c(1,3))
-plot(tabla_m19$x, tabla_m19$lx, type = "l", lwd = 2, col = "blue", xlab = "Edad", ylab = "lx", main = "Sobrevivientes lx (M 2019)")
-plot(tabla_m19$x, tabla_m19$dx, type = "l", lwd = 2, col = "red", xlab = "Edad", ylab = "dx", main = "Defunciones dx (M 2019)")
-plot(tabla_m19$x, tabla_m19$mx, type = "l", log = "y", lwd = 2, col = "black", xlab = "Edad", ylab = "mx", main = "Riesgo mx (M 2019)")
+plot(tabla_m19$x, tabla_m19$lx, type = "l", lwd = 2, col = "blue", xlab = "Edad", ylab = "lx", main = "lx (M 2019)")
+plot(tabla_m19$x, tabla_m19$dx, type = "l", lwd = 2, col = "red", xlab = "Edad", ylab = "dx", main = "ndx (M 2019)")
+plot(tabla_m19$x, tabla_m19$mx, type = "l", log = "y", lwd = 2, col = "black", xlab = "Edad", ylab = "mx", main = "nmx (M 2019)")
 par(mfrow = c(1,1))
 
 ```
+\clearpage
 
-```{r}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 
 ### H 2021 lx, ndx y nmx
 par(mfrow = c(1,3))
-plot(tabla_h21$x, tabla_h21$lx, type = "l", lwd = 2, col = "blue", xlab = "Edad", ylab = "lx", main = "Sobrevivientes lx (H 2021)")
-plot(tabla_h21$x, tabla_h21$dx, type = "l", lwd = 2, col = "red", xlab = "Edad", ylab = "dx", main = "Defunciones dx (H 2021)")
-plot(tabla_h21$x, tabla_h21$mx, type = "l", log = "y", lwd = 2, col = "black", xlab = "Edad", ylab = "mx", main = "Riesgo mx (H 2021)")
+plot(tabla_h21$x, tabla_h21$lx, type = "l", lwd = 2, col = "blue", xlab = "Edad", ylab = "lx", main = "lx (H 2021)")
+plot(tabla_h21$x, tabla_h21$dx, type = "l", lwd = 2, col = "red", xlab = "Edad", ylab = "dx", main = "ndx (H 2021)")
+plot(tabla_h21$x, tabla_h21$mx, type = "l", log = "y", lwd = 2, col = "black", xlab = "Edad", ylab = "mx", main = "nmx (H 2021)")
 
 ### M 2021 lx, ndx y nmx
 par(mfrow = c(1,3))
-plot(tabla_m21$x, tabla_m21$lx, type = "l", lwd = 2, col = "blue", xlab = "Edad", ylab = "lx", main = "Sobrevivientes lx (M 2021)")
-plot(tabla_m21$x, tabla_m21$dx, type = "l", lwd = 2, col = "red", xlab = "Edad", ylab = "dx", main = "Defunciones dx (M 2021)")
-plot(tabla_m21$x, tabla_m21$mx, type = "l", log = "y", lwd = 2, col = "black", xlab = "Edad", ylab = "mx", main = "Riesgo mx (M 2021)")
+plot(tabla_m21$x, tabla_m21$lx, type = "l", lwd = 2, col = "blue", xlab = "Edad", ylab = "lx", main = "lx (M 2021)")
+plot(tabla_m21$x, tabla_m21$dx, type = "l", lwd = 2, col = "red", xlab = "Edad", ylab = "dx", main = "ndx (M 2021)")
+plot(tabla_m21$x, tabla_m21$mx, type = "l", log = "y", lwd = 2, col = "black", xlab = "Edad", ylab = "mx", main = "nmx (M 2021)")
 par(mfrow = c(1,1))
 
 ```
+\clearpage
 
-## Analisis de Resultados
+Aqui estan las gráficas de la esperanza de vida de los años 2010, 2019 y 2021 diferenciadas entre hombres y mujeres
 
-zzz
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+### e_x Hombres
+
+# Comparamos 2010, 2019 y 2021
+
+par(mfrow = c(1,3))
+
+plot(tabla_hombres$x, tabla_hombres$ex, type = "l", lwd = 2, col = "darkgreen", 
+     xlab = "Edad", ylab = "ex", main = "ex 2010")
+
+plot(tabla_h19$x, tabla_h19$ex, type = "l", lwd = 2, col = "darkgreen", 
+     xlab = "Edad", ylab = "ex", main = "ex H 2019")
+
+plot(tabla_h21$x, tabla_h21$ex, type = "l", lwd = 2, col = "darkgreen", 
+     xlab = "Edad", ylab = "ex", main = "ex H 2021")
+
+
+### e_x Mujeres
+# Comparamos 2010, 2019 y 2021
+
+par(mfrow = c(1,3))
+
+plot(tabla_mujeres$x, tabla_mujeres$ex, type = "l", lwd = 2, col = "darkgreen", 
+     xlab = "Edad", ylab = "ex", main = "ex M 2010")
+
+plot(tabla_m19$x, tabla_m19$ex, type = "l", lwd = 2, col = "darkgreen", 
+     xlab = "Edad", ylab = "ex", main = "ex M 2019")
+
+plot(tabla_m21$x, tabla_m21$ex, type = "l", lwd = 2, col = "darkgreen", 
+     xlab = "Edad", ylab = "ex", main = "ex M 2021")
+
+# Resetear el panel a 1x1
+par(mfrow = c(1,1))
+
+```
+\clearpage
+
+# Analisis de Resultados
+
+El impacto de la crisis sanitaria en Tlaxcala se manifiesta como un choque demográfico que interrumpió la dinámica de sobrevivencia de la población. 
+
+Al comparar el escenario pre-pandemia (2019) con el pico de la crisis (2021), observamos una caída en la esperanza de vida al nacer ($\boldsymbol{e_0}$) de 2.01 años en hombres y 1.04 años en mujeres, este descenso no es uniforme, sino que se concentra en el aumento drástico de las tasas de mortalidad ($\boldsymbol{{}_nm_x}$) en edades adultas y avanzadas.
+
+En los hombres, el riesgo de morir en el grupo de 60 a 65 años aumentó de 0.0342 a 0.0418, lo que representa un incremento del 22% en la intensidad mortal para ese rango de edad en solo dos años, esta "sobremortalidad" provocó que la cohorte de sobrevivientes ($\boldsymbol{l_x}$) se redujera, mientras que en 2019 el 48% de los hombres alcanzaba los 70 años, para 2021 esa cifra bajó al 42%. 
+
+En las mujeres, aunque el impacto fue menor, la tendencia en las defunciones ($\boldsymbol{{}_nd_x}$) a partir de los 50 años afirma que la pandemia actuo afecto considerablemente, revirtiendo años de ganancias en salud publica y dejando una estructura poblacional con una menor probabilidad de alcanzar edades mas grandes.
+
+## Datos Extra:
+
+* la mortalidad infantil (${}_1m_0$ o $m_0$) en las tablas de 2021 no se disparo tanto como la de adultos. Esto confirma la teoría de que el COVID-19 fue "selectivo" de cierta manera.
+
+*  La cantidad de personas que llegan a los 90 años ($\boldsymbol{l_{90}}$) pasó de 6,489 en 2019 a solo 4,609 en 2021, es decir, se perdio un 30% aproximadamente 
