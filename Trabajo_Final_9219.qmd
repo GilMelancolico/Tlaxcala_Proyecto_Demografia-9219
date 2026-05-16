@@ -67,6 +67,7 @@ library(tidyr)
 #library(kableExtra)
 library(readxl)
 #library(tinytex)
+library(readr)
 
 # Descargar tablas de datos
 pop <- fread("https://repodatos.atdt.gob.mx/CONAPO/proyecciones/00_Pob_Mitad_1950_2070.csv")
@@ -167,7 +168,8 @@ Para proyectar la población y defunciones a mitad de año ($t = 2019.5, 2021.5$
 
 Esto es la teoría de lo que se realizo en excel para obtener los datos de 2019 y 2021 a partir de los censos de 2010 y 2020. Se tiene la tabla con las tasas de crecimiento intercensal entre 2010 y 2020
 
-```{r}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
 tci <- fread("https://raw.githubusercontent.com/GilMelancolico/Tlaxcala_Proyecto_Demografia-9219/main/data/tci2010_2020.csv")
 knitr::kable(
   tci,
@@ -178,7 +180,8 @@ knitr::kable(
 
 A partir de estas se estimaron las poblaciones y defunciones en 2019 y 2021.
 
-```{r}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
 deaths19 <- fread("https://raw.githubusercontent.com/GilMelancolico/Tlaxcala_Proyecto_Demografia-9219/main/data/deaths19.csv")
 knitr::kable(
   deaths19,
@@ -431,18 +434,17 @@ cat("\\setlength{\\tabcolsep}{6pt}")
 ```
 
 \clearpage
-
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 
 ### 2019
+tlx19 <- read_csv("data/deaths19.csv")
 
-tlx19 <- read_excel(ruta_archivo, sheet = "2019")
-
+# Renombramos las columnas de Nicolás e inyectamos x e n manualmente
 tlx19 <- tlx19 %>%
-  rename(x = 1, n = 2, K_h = 3, K_m = 4, D_h = 5, D_m = 6) %>%
+  rename(K_h = K_hombre, K_m = K_mujer, D_h = D_hombre, D_m = D_mujer) %>%
   mutate(
-    x = as.numeric(ifelse(x == "95+", 95, x)),
-    n = as.numeric(n)
+    x = c(0, 1, seq(5, 95, by = 5)),
+    n = c(1, 4, rep(5, 18), NA)
   )
 
 tabla_h19 <- lt_abr(
@@ -460,14 +462,14 @@ tabla_m19 <- lt_abr(
 )
 
 ### 2021
+tlx21 <- read_csv("data/deaths21.csv")
 
-tlx21 <- read_excel(ruta_archivo, sheet = "2021")
-
+# Aplicamos la misma corrección para el archivo de 2021
 tlx21 <- tlx21 %>%
-  rename(x = 1, n = 2, K_h = 3, K_m = 4, D_h = 5, D_m = 6) %>%
+  rename(K_h = K_hombre, K_m = K_mujer, D_h = D_hombre, D_m = D_mujer) %>%
   mutate(
-    x = as.numeric(ifelse(x == "95+", 95, x)),
-    n = as.numeric(n)
+    x = c(0, 1, seq(5, 95, by = 5)),
+    n = c(1, 4, rep(5, 18), NA)
   )
 
 tabla_h21 <- lt_abr(
