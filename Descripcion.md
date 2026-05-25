@@ -50,4 +50,3 @@ Para poder ejecutar el código y compilar el documento sin errores, es necesario
 
 > **⚠️ Nota sobre la compilación del PDF:**
 > Para la generación del documento final (`Trabajo_Final_9219.pdf`), este proyecto asume que el sistema cuenta con una distribución completa de LaTeX (como **MiKTeX**). Por este motivo, las librerías `tinytex` y `kableExtra` fueron omitidas del código fuente, esto debido a problemas de renderización con las librerias
-*Nota: Los archivos de Excel se descargan y leen automáticamente en un entorno temporal (`tempfile`) directamente desde este repositorio para evitar errores de rutas (paths) locales.*
