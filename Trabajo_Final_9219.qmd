@@ -18,7 +18,7 @@ author:
   - "Nicolas de Silva Nacenta"
   - "Emmanuel Escobar Gutiérrez"
 abstract: |
-  Este estudio presenta la construcción de tablas de vida abreviadas para el estado de Tlaxcala, analizando el impacto a travez del tiempo en la esperanza de vida y la estructura de mortalidad por sexo y al final como afecto la crisis sanitaria.
+  Este estudio presenta la construcción de tablas de vida abreviadas para el estado de Tlaxcala, analizando el impacto a través del tiempo en la esperanza de vida y la estructura de mortalidad por sexo y al final como afecto la crisis sanitaria.
 lang: es
 format:
   pdf:
@@ -223,7 +223,7 @@ De esta manera obtenemos los datos para la tabla de vida de 2010, 2019 y 2021 di
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 
-ruta_archivo <- "C:/Users/Mario Escobar/Downloads/Ciencias/Demografia/Demography_9219/Demography_9219/data/Tlx_tabla_mort.xlsx"
+ruta_archivo <- "data/Tlx_tabla_mort.xlsx"
 
 tlaxcala <- read_excel(
   ruta_archivo,
@@ -709,3 +709,75 @@ En las mujeres, aunque el impacto fue menor, la tendencia en las defunciones ($\
 -   la mortalidad infantil (${}_1m_0$ o $m_0$) en las tablas de 2021 no se disparo tanto como la de adultos. Esto confirma la teoría de que el COVID-19 fue "selectivo" de cierta manera.
 
 -   La cantidad de personas que llegan a los 90 años ($\boldsymbol{l_{90}}$) pasó de 6,489 en 2019 a solo 4,609 en 2021, es decir, se perdio un 30% aproximadamente
+
+
+# Fertilidad y Fecundidad
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+# Población total, LocID de Finlandia 246
+
+fec <- fread(
+  "https://population.un.org/wpp/assets/Excel%20Files/1_Indicator%20(Standard)/CSV_FILES/WPP2024_Fertility_by_Age5.csv.gz")
+
+# table(fec$AgeGrpStart)
+
+fec_sel_FIN <- fec[ LocID==246 & Variant=="Medium" ]  
+ 
+ 
+POP <- fread("https://population.un.org/wpp/assets/Excel%20Files/1_Indicator%20(Standard)/CSV_FILES/WPP2024_PopulationByAge5GroupSex_Medium.csv.gz")
+
+pop_sel_FIN <- POP[ LocID==246 & Variant=="Medium" ]
+
+# Tasa Global de Fecundidad ----
+
+tgf_FIN <- left_join(fec_sel_FIN, pop_sel_FIN[ , .(Time, AgeGrpStart, PopFemale)], by=c("Time", "AgeGrpStart"))
+
+tgf_FIN <- tgf_FIN[ , tef := Births/PopFemale*1000]
+
+
+ggplot(data=tgf_FIN, aes(x=AgeGrp, y=tef, group=Time, color=Time)) +
+  geom_line() + geom_point() +
+  theme_minimal() +
+  geom_vline(xintercept = 2024, linetype = 'dashed', color = 'red', linewidth = 0.54, alpha = 0.70)
+
+
+tgf_FIN <- tgf_FIN[ , mc := AgeGrpStart + 2.5][ , mc_tef := mc*tef]
+
+em_FIN <- tgf_FIN[ , .(em = sum(mc_tef)/sum(tef)), .(Time)]  
+
+plot(em_FIN$Time, em_FIN$em)
+
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+# Población total, LocID de México 484
+
+# table(fec$AgeGrpStart)
+
+fec_sel_MEX <- fec[ LocID==484 & Variant=="Medium" ]  
+
+pop_sel_MEX <- POP[ LocID==484 & Variant=="Medium" ]
+
+# Tasa Global de Fecundidad ----
+
+tgf_MEX <- left_join(fec_sel_MEX, pop_sel_MEX[ , .(Time, AgeGrpStart, PopFemale)], by=c("Time", "AgeGrpStart"))
+
+tgf_MEX <- tgf_MEX[ , tef := Births/PopFemale*1000]
+
+
+ggplot(data=tgf_MEX, aes(x=AgeGrp, y=tef, group=Time, color=Time)) +
+  geom_line() + geom_point() +
+  theme_minimal() +
+  geom_vline(xintercept = 2024, linetype = 'dashed', color = 'red', linewidth = 0.54, alpha = 0.70)
+
+
+tgf_MEX <- tgf_MEX[ , mc := AgeGrpStart + 2.5][ , mc_tef := mc*tef]
+
+em_MEX <- tgf_MEX[ , .(em = sum(mc_tef)/sum(tef)), .(Time)]  
+
+plot(em_MEX$Time, em_MEX$em)
+
+```
+
