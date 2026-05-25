@@ -1,6 +1,6 @@
 # Análisis Demográfico del Estado de Tlaxcala (2010, 2019 y 2021) 📊
 
-**Universidad Nacional Autónoma de México (UNAM)** **Facultad de Ciencias** **Autores:** * Nicolás de Silva Nacenta
+**Universidad Nacional Autónoma de México (UNAM)** **Facultad de Ciencias** **Autores:**
 * Emmanuel Escobar Gutiérrez
 * Nicolas de Silva Nacenta
 
