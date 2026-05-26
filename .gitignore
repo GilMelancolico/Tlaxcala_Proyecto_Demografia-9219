@@ -2,3 +2,10 @@
 .RData 
 .Rhistory 
 .Rproj.user
+
+# Ignorar temporales
+*.RDataTmp*
+*.log
+*.tex
+*.rmarkdown
+*_files/
