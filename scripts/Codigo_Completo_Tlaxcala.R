@@ -1,0 +1,621 @@
+## ----echo=FALSE, message=FALSE, warning=FALSE-----------------------------------------------------------------
+
+#| echo: false
+#| message: false
+#| warning: false
+
+# Remover los objetos
+rm(list = ls())
+
+# Paquetes 
+
+library(lubridate)
+library(data.table)
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+#library(kableExtra)
+library(readxl)
+#library(tinytex)
+library(readr)
+
+# Descargar tablas de datos
+pop <- fread("https://repodatos.atdt.gob.mx/CONAPO/proyecciones/00_Pob_Mitad_1950_2070.csv")
+
+# Filtrar Estado
+
+tlx <- pop[ENTIDAD == "Tlaxcala" & ANIO == "2026", .(SEXO, EDAD, POBLACION)]
+
+
+
+## ----echo=FALSE, message=FALSE, warning=FALSE-----------------------------------------------------------------
+
+# Agrupamos por rangos de 5 años para que coincida con la imagen
+tlx_pyramid <- tlx %>%
+  mutate(EDAD_GRP = cut(EDAD, 
+                        breaks = c(seq(0, 85, by = 5), Inf), 
+                        labels = c("0-4", "5-9", "10-14", "15-19", "20-24", "25-29", 
+                                   "30-34", "35-39", "40-44", "45-49", "50-54", "55-59", 
+                                   "60-64", "65-69", "70-74", "75-79", "80-84", "85+"), 
+                        right = FALSE)) %>%
+  group_by(SEXO, EDAD_GRP) %>%
+  summarise(POBLACION = sum(POBLACION)) %>%
+  ungroup()
+
+# Convertimos la población de "Hombres" en negativa para el efecto espejo
+tlx_pyramid <- tlx_pyramid %>%
+  mutate(POBLACION_GRAF = ifelse(SEXO == "Hombres", -POBLACION, POBLACION))
+
+# 6. Generar la gráfica con ggplot2
+ggplot(tlx_pyramid, aes(x = EDAD_GRP, y = POBLACION_GRAF, fill = SEXO)) +
+  geom_col() +
+  coord_flip() + # Voltea la gráfica para que las barras sean horizontales
+  scale_y_continuous(labels = abs) + # Muestra valores absolutos (sin el signo menos)
+  scale_fill_manual(values = c("Hombres" = "#a651a1", "Mujeres" = "#009688")) + # Colores de tu imagen
+  theme_minimal() +
+  labs(title = "Población De Tlaxcala (2026)",
+       subtitle = "Distribución por edad y sexo",
+       x = "Grupos de Edad", 
+       y = "Población",
+       fill = "Sexo") +
+  theme(legend.position = "bottom")
+
+
+
+## ----echo=FALSE, message=FALSE, warning=FALSE-----------------------------------------------------------------
+
+deaths10 <- fread("data/2010Tlx_N,D.csv")
+knitr::kable(
+  deaths10,
+  caption = "Tabla de Tlx 2010"
+)
+
+deaths20 <- fread("data/2020Tlx_N,D.csv")
+knitr::kable(
+  deaths20,
+  caption = "Tabla de Tlx 2020"
+)
+
+
+
+## ----echo=FALSE, message=FALSE, warning=FALSE-----------------------------------------------------------------
+
+tci <- fread("https://raw.githubusercontent.com/GilMelancolico/Tlaxcala_Proyecto_Demografia-9219/main/data/tci2010_2020.csv")
+knitr::kable(
+  tci,
+  caption = "Tabla de Tasas de Crecimiento Intercensal entre 2010 y 2020"
+)
+
+
+
+## ----echo=FALSE, message=FALSE, warning=FALSE-----------------------------------------------------------------
+
+deaths19 <- fread("https://raw.githubusercontent.com/GilMelancolico/Tlaxcala_Proyecto_Demografia-9219/main/data/deaths19.csv")
+knitr::kable(
+  deaths19,
+  caption = "Población y defunciones de Tlaxcala estimadas para 2019"
+)
+
+deaths21 <- fread("https://raw.githubusercontent.com/GilMelancolico/Tlaxcala_Proyecto_Demografia-9219/main/data/deaths21.csv")
+knitr::kable(
+  deaths21,
+  caption = "Población y defunciones de Tlaxcala estimadas para 2021"
+)
+
+
+
+## ----echo=FALSE, message=FALSE, warning=FALSE-----------------------------------------------------------------
+
+ruta_archivo <- "data/Tlx_tabla_mort.xlsx"
+
+tlaxcala <- read_excel(
+  ruta_archivo,
+  sheet = "2010"
+)
+
+# Renombrar columnas
+tlaxcala <- tlaxcala %>%
+  
+  rename(
+    x = 1,
+    n = 2,
+    K_h = 3,
+    K_m = 4,
+    D_h = 5,
+    D_m = 6
+  ) %>%
+  
+  mutate(
+    x = ifelse(x == "95+", 95, x),
+    
+    x = as.numeric(x),
+    n = as.numeric(n),
+    
+    K_h = as.numeric(K_h),
+    K_m = as.numeric(K_m),
+    
+    D_h = as.numeric(D_h),
+    D_m = as.numeric(D_m)
+  )
+
+### Función de proyección exponencial
+expo <- function(K_0, K_T, t_0, t_T, t){
+  
+  # Reemplazar NA
+  
+  K_0[is.na(K_0)] <- 0.5
+  K_T[is.na(K_T)] <- 0.5
+  
+  # Reemplazar ceros
+  
+  K_0[K_0 == 0] <- 0.5
+  K_T[K_T == 0] <- 0.5
+  
+  # crecimiento exponencial
+  
+  r <- log(K_T / K_0) / (t_T - t_0)
+  
+  K_t <- K_0 * exp(r * (t - t_0))
+  
+  return(K_t)
+}
+
+
+### Funcion Tabla de vida
+
+lt_abr <- function(x, n, mx, sex = "h"){
+
+  m <- length(x)
+
+  ax <- n/2
+
+  # Ajuste Coale-Demeny edad 0
+
+  if(sex == "h"){
+
+    ax[1] <- ifelse(
+      mx[1] >= 0.107,
+      0.330,
+      0.045 + 2.684 * mx[1]
+    )
+
+  } else {
+
+    ax[1] <- ifelse(
+      mx[1] >= 0.107,
+      0.350,
+      0.053 + 2.800 * mx[1]
+    )
+  }
+
+  # Ajuste edad 1-4
+
+  if(sex == "h"){
+
+    ax[2] <- ifelse(
+      mx[1] >= 0.107,
+      1.352,
+      1.651 + 2.816 * mx[1]
+    )
+
+  } else {
+
+    ax[2] <- ifelse(
+      mx[1] >= 0.107,
+      1.361,
+      1.522 + 1.518 * mx[1]
+    )
+  }
+
+  # qx
+
+  qx <- (n * mx) / (1 + (n - ax) * mx)
+
+  qx[m] <- 1
+
+  # px
+
+  px <- 1 - qx
+
+  # lx
+
+  lx <- 100000 * cumprod(c(1, px[-m]))
+
+  # dx
+
+  dx <- c(-diff(lx), lx[m])
+
+  # Lx
+
+  Lx <- n * c(lx[-1], 0) + ax * dx
+
+  Lx[m] <- lx[m] / mx[m]
+
+  # Tx
+
+  Tx <- rev(cumsum(rev(Lx)))
+
+  # ex
+
+  ex <- Tx / lx
+
+  data.table(
+    x, n, mx, ax, qx, px, lx, dx, Lx, Tx, ex
+  )
+}
+
+# TABLA HOMBRES
+
+mx_h <- tlaxcala$D_h / tlaxcala$K_h
+
+tabla_hombres <- lt_abr(
+  x = tlaxcala$x,
+  n = tlaxcala$n,
+  mx = mx_h,
+  sex = "h"
+)
+
+# TABLA MUJERES
+
+mx_m <- tlaxcala$D_m / tlaxcala$K_m
+
+tabla_mujeres <- lt_abr(
+  x = tlaxcala$x,
+  n = tlaxcala$n,
+  mx = mx_m,
+  sex = "f"
+)
+
+
+
+## ----echo=FALSE, message=FALSE, warning=FALSE, results='asis'-------------------------------------------------
+
+## hombres 2010
+
+cat("\\setlength{\\tabcolsep}{2pt}") 
+cat("\\tiny") 
+
+knitr::kable(
+  tabla_hombres,
+  format = "latex",
+  booktabs = TRUE,
+  caption = "Tabla de Vida Tlaxcala 2010 (H)",
+  align = "c",
+  digits = 4,
+  format.args = list(
+    big.mark = ".",
+    decimal.mark = ","
+  )
+)
+
+cat("\\normalsize")
+cat("\\setlength{\\tabcolsep}{6pt}")
+
+## mujeres 2010
+
+cat("\\setlength{\\tabcolsep}{2pt}") 
+cat("\\tiny") 
+
+knitr::kable(
+  tabla_mujeres,
+  format = "latex",
+  booktabs = TRUE,
+  caption = "Tabla de Vida Tlaxcala 2010 (M)",
+  align = "c",
+  digits = 4,
+  format.args = list(
+    big.mark = ".",
+    decimal.mark = ","
+  )
+)
+
+cat("\\normalsize")
+cat("\\setlength{\\tabcolsep}{6pt}")
+
+
+
+## ----echo=FALSE, message=FALSE, warning=FALSE-----------------------------------------------------------------
+
+### 2019
+tlx19 <- read_csv("data/deaths19.csv")
+
+# Renombramos las columnas de Nicolás e inyectamos x e n manualmente
+tlx19 <- tlx19 %>%
+  rename(K_h = K_hombre, K_m = K_mujer, D_h = D_hombre, D_m = D_mujer) %>%
+  mutate(
+    x = c(0, 1, seq(5, 95, by = 5)),
+    n = c(1, 4, rep(5, 18), NA)
+  )
+
+tabla_h19 <- lt_abr(
+  x = tlx19$x, 
+  n = tlx19$n, 
+  mx = tlx19$D_h / tlx19$K_h, 
+  sex = "h"
+)
+
+tabla_m19 <- lt_abr(
+  x = tlx19$x, 
+  n = tlx19$n, 
+  mx = tlx19$D_m / tlx19$K_m, 
+  sex = "f"
+)
+
+### 2021
+tlx21 <- read_csv("data/deaths21.csv")
+
+# Aplicamos la misma corrección para el archivo de 2021
+tlx21 <- tlx21 %>%
+  rename(K_h = K_hombre, K_m = K_mujer, D_h = D_hombre, D_m = D_mujer) %>%
+  mutate(
+    x = c(0, 1, seq(5, 95, by = 5)),
+    n = c(1, 4, rep(5, 18), NA)
+  )
+
+tabla_h21 <- lt_abr(
+  x = tlx21$x, 
+  n = tlx21$n, 
+  mx = tlx21$D_h / tlx21$K_h,
+  sex = "h"
+)
+
+tabla_m21 <- lt_abr(
+  x = tlx21$x, 
+  n = tlx21$n, 
+  mx = tlx21$D_m / tlx21$K_m, 
+  sex = "f"
+)
+
+
+
+## ----echo=FALSE, message=FALSE, warning=FALSE, results='asis'-------------------------------------------------
+
+### Tablas 2019 y 2021
+
+# 2019 H
+
+cat("\\setlength{\\tabcolsep}{2pt}") 
+cat("\\tiny") 
+
+knitr::kable(
+  tabla_h19,
+  format = "latex",
+  booktabs = TRUE,
+  caption = "Tabla de Vida Tlaxcala 2019 (H)",
+  align = "c",
+  digits = 4,
+  format.args = list(big.mark = ".", decimal.mark = ",")
+)
+
+# 2019 M
+
+knitr::kable(
+  tabla_m19,
+  format = "latex",
+  booktabs = TRUE,
+  caption = "Tabla de Vida Tlaxcala 2019 (M)",
+  align = "c",
+  digits = 4,
+  format.args = list(big.mark = ".", decimal.mark = ",")
+)
+
+# 2021 H
+
+knitr::kable(
+  tabla_h21,
+  format = "latex",
+  booktabs = TRUE,
+  caption = "Tabla de Vida Tlaxcala 2021 (H)",
+  align = "c",
+  digits = 4,
+  format.args = list(big.mark = ".", decimal.mark = ",")
+)
+
+# 2021 M
+
+knitr::kable(
+  tabla_m21,
+  format = "latex",
+  booktabs = TRUE,
+  caption = "Tabla de Vida Tlaxcala 2021 (M)",
+  align = "c",
+  digits = 4,
+  format.args = list(big.mark = ".", decimal.mark = ",")
+)
+
+cat("\\normalsize")
+cat("\\setlength{\\tabcolsep}{6pt}")
+
+
+
+## ----echo=FALSE, message=FALSE, warning=FALSE-----------------------------------------------------------------
+
+# 1. Creamos el data frame con los valores de e0 (primera fila de ex)
+resumen_esperanza <- data.frame(
+  Año = c("2010", "2019", "2021"),
+  Hombres = c(
+    tabla_hombres$ex[1], 
+    tabla_h19$ex[1], 
+    tabla_h21$ex[1]
+  ),
+  Mujeres = c(
+    tabla_mujeres$ex[1], 
+    tabla_m19$ex[1], 
+    tabla_m21$ex[1]
+  )
+)
+
+# 2. Calculamos la brecha por sexo (opcional, pero muy común en la Facultad)
+resumen_esperanza$Brecha <- resumen_esperanza$Mujeres - resumen_esperanza$Hombres
+
+# 3. Generamos la tabla con knitr::kable
+knitr::kable(
+  resumen_esperanza,
+  digits = 2,
+  align = "c",
+  booktabs = TRUE,
+  col.names = c("Año", "Hombres ($e_0$)", "Mujeres ($e_0$)", "Brecha (M - H)"),
+  escape = FALSE,
+  caption = "Comparativa de la Esperanza de Vida al Nacer en Tlaxcala (2010-2021)"
+)
+
+
+
+## ----echo=FALSE, message=FALSE, warning=FALSE-----------------------------------------------------------------
+
+### H 2010 lx, ndx y nmx
+
+par(mfrow = c(1,3))
+plot(tabla_hombres$x, tabla_hombres$lx, type = "l", lwd = 2, col = "blue", xlab = "Edad", ylab = "lx", main = "lx (H 2010)")
+plot(tabla_hombres$x, tabla_hombres$dx, type = "l", lwd = 2, col = "red", xlab = "Edad", ylab = "dx", main = "ndx (H 2010)")
+plot(tabla_hombres$x, tabla_hombres$mx, type = "l", log = "y", lwd = 2, col = "black", xlab = "Edad", ylab = "mx", main = "nmx (H 2010)")
+
+### M 2010 lx, ndx y nmx
+par(mfrow = c(1,3))
+plot(tabla_mujeres$x, tabla_mujeres$lx, type = "l", lwd = 2, col = "blue", xlab = "Edad", ylab = "lx", main = "lx (M 2010)")
+plot(tabla_mujeres$x, tabla_mujeres$dx, type = "l", lwd = 2, col = "red", xlab = "Edad", ylab = "dx", main = "ndx (M 2010)")
+plot(tabla_mujeres$x, tabla_mujeres$mx, type = "l", log = "y", lwd = 2, col = "black", xlab = "Edad", ylab = "mx", main = " nmx (M 2010)")
+par(mfrow = c(1,1))
+
+
+
+## ----echo=FALSE, message=FALSE, warning=FALSE-----------------------------------------------------------------
+
+### H 2019 lx, ndx y nmx
+
+par(mfrow = c(1,3))
+plot(tabla_h19$x, tabla_h19$lx, type = "l", lwd = 2, col = "blue", xlab = "Edad", ylab = "lx", main = "lx (H 2019)")
+plot(tabla_h19$x, tabla_h19$dx, type = "l", lwd = 2, col = "red", xlab = "Edad", ylab = "dx", main = "mdx (H 2019)")
+plot(tabla_h19$x, tabla_h19$mx, type = "l", log = "y", lwd = 2, col = "black", xlab = "Edad", ylab = "mx", main = "mmx (H 2019)")
+
+### M 2019 lx, ndx y nmx
+
+par(mfrow = c(1,3))
+plot(tabla_m19$x, tabla_m19$lx, type = "l", lwd = 2, col = "blue", xlab = "Edad", ylab = "lx", main = "lx (M 2019)")
+plot(tabla_m19$x, tabla_m19$dx, type = "l", lwd = 2, col = "red", xlab = "Edad", ylab = "dx", main = "ndx (M 2019)")
+plot(tabla_m19$x, tabla_m19$mx, type = "l", log = "y", lwd = 2, col = "black", xlab = "Edad", ylab = "mx", main = "nmx (M 2019)")
+par(mfrow = c(1,1))
+
+
+
+## ----echo=FALSE, message=FALSE, warning=FALSE-----------------------------------------------------------------
+
+### H 2021 lx, ndx y nmx
+par(mfrow = c(1,3))
+plot(tabla_h21$x, tabla_h21$lx, type = "l", lwd = 2, col = "blue", xlab = "Edad", ylab = "lx", main = "lx (H 2021)")
+plot(tabla_h21$x, tabla_h21$dx, type = "l", lwd = 2, col = "red", xlab = "Edad", ylab = "dx", main = "ndx (H 2021)")
+plot(tabla_h21$x, tabla_h21$mx, type = "l", log = "y", lwd = 2, col = "black", xlab = "Edad", ylab = "mx", main = "nmx (H 2021)")
+
+### M 2021 lx, ndx y nmx
+par(mfrow = c(1,3))
+plot(tabla_m21$x, tabla_m21$lx, type = "l", lwd = 2, col = "blue", xlab = "Edad", ylab = "lx", main = "lx (M 2021)")
+plot(tabla_m21$x, tabla_m21$dx, type = "l", lwd = 2, col = "red", xlab = "Edad", ylab = "dx", main = "ndx (M 2021)")
+plot(tabla_m21$x, tabla_m21$mx, type = "l", log = "y", lwd = 2, col = "black", xlab = "Edad", ylab = "mx", main = "nmx (M 2021)")
+par(mfrow = c(1,1))
+
+
+
+## ----echo=FALSE, message=FALSE, warning=FALSE-----------------------------------------------------------------
+
+### e_x Hombres
+
+# Comparamos 2010, 2019 y 2021
+
+par(mfrow = c(1,3))
+
+plot(tabla_hombres$x, tabla_hombres$ex, type = "l", lwd = 2, col = "darkgreen", 
+     xlab = "Edad", ylab = "ex", main = "ex 2010")
+
+plot(tabla_h19$x, tabla_h19$ex, type = "l", lwd = 2, col = "darkgreen", 
+     xlab = "Edad", ylab = "ex", main = "ex H 2019")
+
+plot(tabla_h21$x, tabla_h21$ex, type = "l", lwd = 2, col = "darkgreen", 
+     xlab = "Edad", ylab = "ex", main = "ex H 2021")
+
+
+### e_x Mujeres
+# Comparamos 2010, 2019 y 2021
+
+par(mfrow = c(1,3))
+
+plot(tabla_mujeres$x, tabla_mujeres$ex, type = "l", lwd = 2, col = "darkgreen", 
+     xlab = "Edad", ylab = "ex", main = "ex M 2010")
+
+plot(tabla_m19$x, tabla_m19$ex, type = "l", lwd = 2, col = "darkgreen", 
+     xlab = "Edad", ylab = "ex", main = "ex M 2019")
+
+plot(tabla_m21$x, tabla_m21$ex, type = "l", lwd = 2, col = "darkgreen", 
+     xlab = "Edad", ylab = "ex", main = "ex M 2021")
+
+# Resetear el panel a 1x1
+par(mfrow = c(1,1))
+
+
+
+## ----echo=FALSE, message=FALSE, warning=FALSE-----------------------------------------------------------------
+
+# Población total, LocID de Finlandia 246
+
+fec <- fread(
+  "https://population.un.org/wpp/assets/Excel%20Files/1_Indicator%20(Standard)/CSV_FILES/WPP2024_Fertility_by_Age5.csv.gz")
+
+# table(fec$AgeGrpStart)
+
+fec_sel_FIN <- fec[ LocID==246 & Variant=="Medium" ]  
+ 
+ 
+POP <- fread("https://population.un.org/wpp/assets/Excel%20Files/1_Indicator%20(Standard)/CSV_FILES/WPP2024_PopulationByAge5GroupSex_Medium.csv.gz")
+
+pop_sel_FIN <- POP[ LocID==246 & Variant=="Medium" ]
+
+# Tasa Global de Fecundidad ----
+
+tgf_FIN <- left_join(fec_sel_FIN, pop_sel_FIN[ , .(Time, AgeGrpStart, PopFemale)], by=c("Time", "AgeGrpStart"))
+
+tgf_FIN <- tgf_FIN[ , tef := Births/PopFemale*1000]
+
+
+ggplot(data=tgf_FIN, aes(x=AgeGrp, y=tef, group=Time, color=Time)) +
+  geom_line() + geom_point() +
+  theme_minimal() +
+  geom_vline(xintercept = 2024, linetype = 'dashed', color = 'red', linewidth = 0.54, alpha = 0.70)
+
+
+tgf_FIN <- tgf_FIN[ , mc := AgeGrpStart + 2.5][ , mc_tef := mc*tef]
+
+em_FIN <- tgf_FIN[ , .(em = sum(mc_tef)/sum(tef)), .(Time)]  
+
+plot(em_FIN$Time, em_FIN$em)
+
+
+
+## ----echo=FALSE, message=FALSE, warning=FALSE-----------------------------------------------------------------
+
+# Población total, LocID de México 484
+
+# table(fec$AgeGrpStart)
+
+fec_sel_MEX <- fec[ LocID==484 & Variant=="Medium" ]  
+
+pop_sel_MEX <- POP[ LocID==484 & Variant=="Medium" ]
+
+# Tasa Global de Fecundidad ----
+
+tgf_MEX <- left_join(fec_sel_MEX, pop_sel_MEX[ , .(Time, AgeGrpStart, PopFemale)], by=c("Time", "AgeGrpStart"))
+
+tgf_MEX <- tgf_MEX[ , tef := Births/PopFemale*1000]
+
+
+ggplot(data=tgf_MEX, aes(x=AgeGrp, y=tef, group=Time, color=Time)) +
+  geom_line() + geom_point() +
+  theme_minimal() +
+  geom_vline(xintercept = 2024, linetype = 'dashed', color = 'red', linewidth = 0.54, alpha = 0.70)
+
+
+tgf_MEX <- tgf_MEX[ , mc := AgeGrpStart + 2.5][ , mc_tef := mc*tef]
+
+em_MEX <- tgf_MEX[ , .(em = sum(mc_tef)/sum(tef)), .(Time)]  
+
+plot(em_MEX$Time, em_MEX$em)
+
+
