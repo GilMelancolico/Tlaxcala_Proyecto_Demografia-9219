@@ -19,7 +19,7 @@ author:
   - "Emmanuel Escobar Gutiérrez"
 abstract: |
   Este estudio presenta la construcción de tablas de vida abreviadas para el estado de Tlaxcala, analizando el impacto a través del tiempo en la esperanza de vida y la estructura de mortalidad por sexo y al final como afecto la crisis sanitaria.
-lang: es
+lang: en
 format:
   pdf:
     classoption: titlepage
@@ -142,13 +142,13 @@ Primero que todo obtendremos los datos necesarios por medio de INEGI en formato 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 
-deaths10 <- fread("data/2010Tlx_N,D.csv")
+deaths10 <- fread("https://raw.githubusercontent.com/GilMelancolico/Tlaxcala_Proyecto_Demografia-9219/main/data/2010Tlx_N,D.csv")
 knitr::kable(
   deaths10,
   caption = "Tabla de Tlx 2010"
 )
 
-deaths20 <- fread("data/2020Tlx_N,D.csv")
+deaths20 <- fread("https://raw.githubusercontent.com/GilMelancolico/Tlaxcala_Proyecto_Demografia-9219/main/data/2020Tlx_N,D.csv")
 knitr::kable(
   deaths20,
   caption = "Tabla de Tlx 2020"
@@ -434,6 +434,7 @@ cat("\\setlength{\\tabcolsep}{6pt}")
 ```
 
 \clearpage
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 
 ### 2019
@@ -710,7 +711,6 @@ En las mujeres, aunque el impacto fue menor, la tendencia en las defunciones ($\
 
 -   La cantidad de personas que llegan a los 90 años ($\boldsymbol{l_{90}}$) pasó de 6,489 en 2019 a solo 4,609 en 2021, es decir, se perdio un 30% aproximadamente
 
-
 # Fertilidad y Fecundidad
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
@@ -780,4 +780,3 @@ em_MEX <- tgf_MEX[ , .(em = sum(mc_tef)/sum(tef)), .(Time)]
 plot(em_MEX$Time, em_MEX$em)
 
 ```
-
