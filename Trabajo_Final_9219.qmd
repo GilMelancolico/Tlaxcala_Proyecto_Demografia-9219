@@ -17,9 +17,9 @@ subtitle: |
 author: 
   - "Nicolas de Silva Nacenta"
   - "Emmanuel Escobar Gutiérrez"
+lang: es
 abstract: |
   Este estudio presenta la construcción de tablas de vida abreviadas para el estado de Tlaxcala, analizando el impacto a través del tiempo en la esperanza de vida y la estructura de mortalidad por sexo y al final como afecto la crisis sanitaria.
-lang: en
 format:
   pdf:
     classoption: titlepage
@@ -110,15 +110,15 @@ ggplot(tlx_pyramid, aes(x = EDAD_GRP, y = POBLACION_GRAF, fill = SEXO)) +
 
 Para cuantificar las observaciones de la pirámide, se han calculado los siguientes indicadores clave que sintetizan la realidad del estado:
 
-### Edad Mediana:
+## Edad Mediana:
 
 Situada en los 28 años, este indicador divide a la población en dos grupos numéricamente iguales, confirmando que Tlaxcala es aún un estado joven, pero con una tendencia clara hacia la madurez.
 
-### Índice de Masculinidad:
+## Índice de Masculinidad:
 
 Con una proporción de 93 hombres por cada 100 mujeres, se observa un superávit femenino que se acentúa en las edades avanzadas, factor determinante para el análisis de la mortalidad diferencial por sexo.
 
-### Relación de Dependencia:
+## Relación de Dependencia:
 
 Este indicador mide la carga económica potencial de la población en edades no productivas (niños y adultos mayores) sobre la población en edad de trabajar. La estructura actual sugiere una ventana de oportunidad económica (bono demográfico), aunque la creciente informalidad laboral (70.9%) limita la capacidad de ahorro y previsión para el retiro de estos grupos.
 
@@ -192,11 +192,11 @@ knitr::kable(
 
 ```
 
-### Tasas Centrales de Mortalidad
+## Tasas Centrales de Mortalidad
 
 ($_nm_x$)Una vez proyectados los insumos a mitad de año, se calculan las tasas centrales de mortalidad para cada grupo de edad $[x, x+n)$ y por sexo, mediante el cociente de las defunciones proyectadas ($_{n}D_x$) entre la población media o expuesta al riesgo ($_{n}K_x$): $$_nm_x = \frac{_{n}D_x}{_{n}K_x}$$
 
-### Funciones de la Tabla de Vida
+## Funciones de la Tabla de Vida
 
 A partir de las tasas centrales de mortalidad (${}_nm_x$), se derivan las funciones biométricas mediante las siguientes relaciones:
 
@@ -691,7 +691,7 @@ par(mfrow = c(1,1))
 
 \clearpage
 
-# Analisis de Resultados
+**Análisis:**
 
 El impacto de la crisis sanitaria en Tlaxcala se manifiesta como un choque demográfico que interrumpió la dinámica de sobrevivencia de la población.
 
@@ -707,11 +707,13 @@ En las mujeres, aunque el impacto fue menor, la tendencia en las defunciones ($\
 
 -   La cantidad de personas que llegan a los 90 años ($\boldsymbol{l_{90}}$) pasó de 6,489 en 2019 a solo 4,609 en 2021, es decir, se perdio un 30% aproximadamente
 
+\clearpage
+
 # Causa Eliminada en 2019 (Homicidios)
 
 El objetivo de esta sección es cuantificar el impacto de los homicidios en la estructura de mortalidad de Tlaxcala en 2019. Para ello, realizaremos un ejercicio de causa eliminada, el cual nos permite aislar el efecto de la violencia sobre la probabilidad de morir y la esperanza de vida.
 
-### Metodología y Fundamentos Teóricos
+## Metodología y Fundamentos Teóricos
 
 Primero, obtuvimos los datos de población y defunciones (totales y por homicidios) del INEGI. Dado que estos datos requieren limpieza y agrupación, utilizamos Excel para filtrar y consolidar los registros en grupos quinquenales hasta los 85 años y más.
 
@@ -848,9 +850,11 @@ El ejercicio de causa eliminada demuestra que los homicidios en Tlaxcala actúan
 
 Al eliminar la violencia homicida, los hombres tlaxcaltecas ganarían cerca de 0.34 años en su esperanza de vida al nacer. Este incremento refleja que la violencia no es solo un problema de seguridad pública, sino un freno demográfico que impide mejorar los niveles de vida en las etapas más productivas de la población masculina.
 
-# Fecundidad
+\clearpage
 
-### Demostración: ¿Por qué la Tasa de Reemplazo es igual a 2.1?
+# Fecundidad y Fertilidad
+
+## Demostración: ¿Por qué la Tasa de Reemplazo es igual a 2.1?
 
 Para establecer el nivel de reemplazo generacional exacto, partimos de la **Tasa Neta de Reproducción (NRR)**. Las condiciones de crecimiento poblacional dependen de este indicador:
 
@@ -890,8 +894,9 @@ $$TGF \approx 2.0918 \approx 2.1$$
 
 La demostración matemática prueba que la Tasa Global de Fecundidad necesaria para el reemplazo poblacional es de **2.1 hijos por mujer**. El exceso de 0.1 sobre los 2 hijos estrictos compensa tanto el mayor nacimiento de varones ($SRB = 1.05$) como la mortalidad femenina antes de concluir su periodo reproductivo ($p(A) < 1$).
 
+\clearpage
 
-# Fecundidad
+## TGF, TBR y TNR
 
 En este apartado se evalúa la intensidad del comportamiento reproductivo de las mujeres en el estado de Tlaxcala para los años 2010 y 2019. Mediante el cruce de los registros administrativos de nacimientos (INEGI) con las proyecciones de población femenina a mitad de año (CONAPO) y la función de años-persona vividos ($L_x$) de nuestras tablas de mortalidad, calculamos tres indicadores fundamentales para dimensionar el nivel de reemplazo poblacional.
 
@@ -966,76 +971,91 @@ Si miramos específicamente la capacidad de sustitución biológica con la $TBR$
 
 En resumen, esa $TNR$ de 0.539 significa que la próxima generación de mujeres será prácticamente la mitad (un 46% más pequeña) que la de sus madres. Si esta tendencia se mantiene, y si no hay una fuerte ola de migración hacia el estado que lo compense, veremos cómo la base de la pirámide de Tlaxcala se hace cada vez más estrecha. A la larga, esto nos llevará a una población mucho más envejecida, con menos jóvenes para mover la economía y un reto enorme para los futuros sistemas de salud y pensiones de la entidad.
 
-### Finlandia
+\clearpage
+
+## TEF
+
+Cuando analizamos la fecundidad de una población, saber el promedio general de hijos por mujer no nos cuenta toda la historia. Igual de importante es entender a qué edad las mujeres están siendo madres. Justo para ver esto a detalle calculamos las Tasas Específicas de Fecundidad (TEF).
+
+En términos sencillos, la TEF nos dice cuántos nacimientos ocurren por cada 1,000 mujeres dentro de un grupo de edad específico (por lo general en bloques de cinco años, como de 20 a 24 años). Si graficamos todas estas tasas juntas, obtenemos lo que en demografía llamamos el "calendario de la fecundidad": una curva que nos deja ver visualmente en qué etapa de la vida se concentra la maternidad. Conocer esto es súper útil, porque la forma de esa curva es un reflejo directo de la realidad social, la educación y los proyectos de vida en una región.
+
+Para este ejercicio, armamos una proyección hacia el año 2029 con la idea de contrastar la realidad de nuestra entidad federativa contra un país altamente desarrollado: Finlandia. Cabe destacar que los datos proyectados para Tlaxcala los extrajimos directamente de las bases oficiales de CONAPO, los cuales presentamos en la siguiente tabla:
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+# Crear la tabla con los datos extraídos de CONAPO
+tabla_tlx <- data.frame(
+  Edad = c("15-19", "20-24", "25-29", "30-34", "35-39", "40-44", "45-49"),
+  TEF = c(66.33, 112.40, 96.12, 66.92, 31.82, 8.35, 0.56)
+)
+
+# Mostrar la tabla llamando directamente a knitr
+knitr::kable(tabla_tlx, 
+             col.names = c("Grupo de Edad", "TEF (Nacimientos por cada 1,000 mujeres)"), 
+             align = "c", 
+             caption = "Datos proyectados por CONAPO para Tlaxcala (2029)")
+
+```
+
+Por otro lado, la información correspondiente a Finlandia proviene de las estimaciones mundiales de las Naciones Unidas (World Population Prospects 2024). A continuación, visualizamos el cruce de ambos escenarios:
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 
-# Población total, LocID de Finlandia 246
+fec <- fread("https://population.un.org/wpp/assets/Excel%20Files/1_Indicator%20(Standard)/CSV_FILES/WPP2024_Fertility_by_Age5.csv.gz")
 
-fec <- fread(
-  "https://population.un.org/wpp/assets/Excel%20Files/1_Indicator%20(Standard)/CSV_FILES/WPP2024_Fertility_by_Age5.csv.gz")
-
-# table(fec$AgeGrpStart)
-
-fec_sel_FIN <- fec[ LocID==246 & Variant=="Medium" ]  
- 
- 
 POP <- fread("https://population.un.org/wpp/assets/Excel%20Files/1_Indicator%20(Standard)/CSV_FILES/WPP2024_PopulationByAge5GroupSex_Medium.csv.gz")
 
+#Filtrar para Finlandia (LocID == 246)
+
+fec_sel_FIN <- fec[ LocID==246 & Variant=="Medium" ]  
 pop_sel_FIN <- POP[ LocID==246 & Variant=="Medium" ]
 
-# Tasa Global de Fecundidad ----
+#Unir bases y calcular TEF
 
 tgf_FIN <- left_join(fec_sel_FIN, pop_sel_FIN[ , .(Time, AgeGrpStart, PopFemale)], by=c("Time", "AgeGrpStart"))
-
+setDT(tgf_FIN) # Asegurar formato data.table
 tgf_FIN <- tgf_FIN[ , tef := Births/PopFemale*1000]
 
+#Extraer Finlandia 2029 
 
-ggplot(data=tgf_FIN, aes(x=AgeGrp, y=tef, group=Time, color=Time)) +
-  geom_line() + geom_point() +
+tef_fin_2029 <- tgf_FIN[Time == 2029, .(Edad = AgeGrp, TEF = tef, Lugar = "Finlandia")]
+
+# Tabla de Tlaxcala 2029
+
+tef_tlx_2029 <- data.frame(
+  Edad = c("15-19", "20-24", "25-29", "30-34", "35-39", "40-44", "45-49"),
+  TEF = c(66.33, 112.40, 96.12, 66.92, 31.82, 8.35, 0.56),
+  Lugar = "Tlaxcala"
+)
+
+#Unir tablas
+
+datos_comparativos <- bind_rows(tef_tlx_2029, tef_fin_2029)
+
+#Grafica
+
+ggplot(datos_comparativos, aes(x = Edad, y = TEF, color = Lugar, group = Lugar)) +
+  geom_line(linewidth = 1.2) +
+  geom_point(size = 3) +
+  labs(
+    title = "Comparativa de Tasas Específicas de Fecundidad (Proyección 2029)",
+    subtitle = "Tlaxcala vs Finlandia",
+    x = "Grupo de Edad",
+    y = "TEF (Nacimientos por cada 1,000 mujeres)",
+    color = "Región"
+  ) +
   theme_minimal() +
-  geom_vline(xintercept = 2024, linetype = 'dashed', color = 'red', linewidth = 0.54, alpha = 0.70)
-
-
-tgf_FIN <- tgf_FIN[ , mc := AgeGrpStart + 2.5][ , mc_tef := mc*tef]
-
-em_FIN <- tgf_FIN[ , .(em = sum(mc_tef)/sum(tef)), .(Time)]  
-
-plot(em_FIN$Time, em_FIN$em)
+  scale_color_manual(values = c("Tlaxcala" = "#009688", "Finlandia" = "#a651a1")) +
+  theme(legend.position = "bottom")
 
 ```
 
+**Análisis:**
 
-### MEX
+Al observar la gráfica comparativa, nos encontramos con dos modelos reproductivos diametralmente opuestos que ilustran las diferencias en los proyectos de vida de las mujeres en ambas regiones.
 
+Por un lado, la curva de Tlaxcala presenta un calendario de fecundidad "temprano". Su cúspide o punto máximo ocurre apenas en el grupo de 20 a 24 años (alcanzando más de 110 nacimientos por cada 1,000 mujeres), manteniéndose alta en el grupo de 25 a 29 para luego caer drásticamente. Esto nos indica que, aunque las familias tlaxcaltecas son cada vez más pequeñas, el inicio de la vida reproductiva y la formación de uniones sigue ocurriendo en una etapa muy joven.
 
-```{r echo=FALSE, message=FALSE, warning=FALSE}
+Por el contrario, la curva de Finlandia muestra un evidente "envejecimiento" o postergación del calendario de fecundidad. Durante las edades de 15 a 24 años, la tasa de nacimientos es casi nula. Su pico reproductivo se desplaza hasta el grupo de 30 a 34 años. Esta estructura es el sello característico de los países altamente desarrollados, donde las mujeres postergan la maternidad para priorizar su consolidación académica, su inserción en el mercado laboral y su independencia económica antes de formar una familia.
 
-# Población total, LocID de México 484
+En conclusión, la gráfica demuestra que mientras Finlandia concentra la reproducción en la tercera década de vida bajo una planificación tardía, Tlaxcala aún conserva una estructura donde la juventud es la principal ventana reproductiva, lo que plantea retos muy distintos para cada gobierno en temas de salud materna, educación y guarderías.
 
-# table(fec$AgeGrpStart)
-
-fec_sel_MEX <- fec[ LocID==484 & Variant=="Medium" ]  
-
-pop_sel_MEX <- POP[ LocID==484 & Variant=="Medium" ]
-
-# Tasa Global de Fecundidad ----
-
-tgf_MEX <- left_join(fec_sel_MEX, pop_sel_MEX[ , .(Time, AgeGrpStart, PopFemale)], by=c("Time", "AgeGrpStart"))
-
-tgf_MEX <- tgf_MEX[ , tef := Births/PopFemale*1000]
-
-
-ggplot(data=tgf_MEX, aes(x=AgeGrp, y=tef, group=Time, color=Time)) +
-  geom_line() + geom_point() +
-  theme_minimal() +
-  geom_vline(xintercept = 2024, linetype = 'dashed', color = 'red', linewidth = 0.54, alpha = 0.70)
-
-
-tgf_MEX <- tgf_MEX[ , mc := AgeGrpStart + 2.5][ , mc_tef := mc*tef]
-
-em_MEX <- tgf_MEX[ , .(em = sum(mc_tef)/sum(tef)), .(Time)]  
-
-plot(em_MEX$Time, em_MEX$em)
-
-```
