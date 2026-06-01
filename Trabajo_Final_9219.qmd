@@ -50,10 +50,6 @@ Este estrechamiento de la base indica una reducción sostenida en los niveles de
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 
-#| echo: false
-#| message: false
-#| warning: false
-
 # Remover los objetos
 rm(list = ls())
 
@@ -710,8 +706,266 @@ En las mujeres, aunque el impacto fue menor, la tendencia en las defunciones ($\
 
 -   La cantidad de personas que llegan a los 90 años ($\boldsymbol{l_{90}}$) pasó de 6,489 en 2019 a solo 4,609 en 2021, es decir, se perdio un 30% aproximadamente
 
+# Causa Eliminada en 2019 (Homicidios)
 
-# Fertilidad y Fecundidad
+El objetivo de esta sección es cuantificar el impacto de los homicidios en la estructura de mortalidad de Tlaxcala en 2019. Para ello, realizaremos un ejercicio de causa eliminada, el cual nos permite aislar el efecto de la violencia sobre la probabilidad de morir y la esperanza de vida.
+
+### Metodología y Fundamentos Teóricos
+
+Primero, obtuvimos los datos de población y defunciones (totales y por homicidios) del INEGI. Dado que estos datos requieren limpieza y agrupación, utilizamos Excel para filtrar y consolidar los registros en grupos quinquenales hasta los 85 años y más.
+
+Para eliminar la causa (homicidios), calculamos la probabilidad de sobrevivir en un escenario hipotético mediante el factor de proporción de causas ($R^{-i}$):
+
+$$R^{-i} = \frac{_nD_x - _nD_x^i}{_nD_x}$$
+
+Donde $_nD_x$ es el total de defunciones y $_nD_x^i$ son las defunciones por homicidio. Con este factor, estimamos la nueva probabilidad de supervivencia libre de la causa ($^*p_x^{-i}$), ajustando la fuerza de mortalidad original ($_{n}p_x$):
+
+$$^*p_x^{-i} = (_np_x)^{R^{-i}}$$
+
+A partir de esta nueva probabilidad de muerte ($^*q_x^{-i} = 1 - ^*p_x^{-i}$), recalculamos las funciones de la tabla de vida ($l_x, L_x, T_x, e_x$) para obtener la esperanza de vida al nacer libre de homicidios ($^*e_0^{-i}$).
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+# Crear carpeta de imágenes si no existe
+if(!dir.exists("imagenes")){
+  dir.create("imagenes")
+}
+
+# Leer tabla de vida
+lt <- read_excel(
+  "output/Causa_Eliminada_Tlx_2019.xlsx",
+  sheet = "LT"
+)
+
+# Tabla resumen
+resumen <- lt %>%
+  filter(age == 0) %>%
+  select(
+    Sexo = sex,
+    `Esperanza de vida (e0)` = ex,
+    `Probabilidad de muerte (q0)` = qx
+  )
+
+knitr::kable(
+  resumen,
+  caption = "Esperanza de vida al nacer y probabilidad de muerte al nacer"
+)
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+# Gráfica qx
+g_qx <- ggplot(
+  lt,
+  aes(x = age, y = qx, color = sex)
+) +
+  geom_line(linewidth = 1) +
+  geom_point() +
+  labs(
+    title = "Probabilidad de muerte (qx)",
+    x = "Edad",
+    y = "qx",
+    color = "Sexo"
+  ) +
+  theme_minimal()
+
+ggsave(
+  "imagenes/qx_homicidios_2019.png",
+  plot = g_qx,
+  width = 8,
+  height = 5
+)
+
+# Gráfica ex
+g_ex <- ggplot(
+  lt,
+  aes(x = age, y = ex, color = sex)
+) +
+  geom_line(linewidth = 1) +
+  geom_point() +
+  labs(
+    title = "Esperanza de vida (ex)",
+    x = "Edad",
+    y = "ex",
+    color = "Sexo"
+  ) +
+  theme_minimal()
+
+ggsave(
+  "imagenes/ex_homicidios_2019.png",
+  plot = g_ex,
+  width = 8,
+  height = 5
+)
+
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width='80%'}
+# Gráfica de qx
+ggplot(
+  lt,
+  aes(x = age, y = qx, color = sex)
+) +
+  geom_line(linewidth = 1) +
+  geom_point() +
+  labs(
+    title = "Probabilidades de muerte (qx)",
+    x = "Edad",
+    y = "qx",
+    color = "Sexo"
+  ) +
+  theme_minimal()
+
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width='80%'}
+
+knitr::include_graphics(
+  "imagenes/ex_homicidios_2019.png"
+)
+
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width='80%'}
+
+ggplot(
+  filter(lt, age == 0),
+  aes(x = sex, y = ex)
+) +
+  geom_col() +
+  labs(
+    title = "Esperanza de vida al nacer (e0)",
+    x = "Sexo",
+    y = "e0"
+  ) +
+  theme_minimal()
+
+```
+
+El ejercicio de causa eliminada demuestra que los homicidios en Tlaxcala actúan como un factor de mortalidad altamente selectivo, afectando predominantemente a los hombres jóvenes entre 15 y 35 años. Mientras que en la población femenina el impacto es marginal, en los hombres esta causa de muerte representa un obstáculo estructural que limita su supervivencia.
+
+Al eliminar la violencia homicida, los hombres tlaxcaltecas ganarían cerca de 0.34 años en su esperanza de vida al nacer. Este incremento refleja que la violencia no es solo un problema de seguridad pública, sino un freno demográfico que impide mejorar los niveles de vida en las etapas más productivas de la población masculina.
+
+# Fecundidad
+
+### Demostración: ¿Por qué la Tasa de Reemplazo es igual a 2.1?
+
+Para establecer el nivel de reemplazo generacional exacto, partimos de la **Tasa Neta de Reproducción (NRR)**. Las condiciones de crecimiento poblacional dependen de este indicador:
+
+* $NRR > 1$: La población crece.
+* $NRR < 1$: La población decrece.
+* $NRR = 1$: Nivel de reemplazo exacto (equilibrio).
+
+Sabemos que la relación entre la Tasa Neta de Reproducción (NRR) y la **Tasa Bruta de Reproducción (GRR)** está dada por la probabilidad de que una mujer sobreviva hasta la edad reproductiva media $A$, denotada como $p(A)$:
+
+$$p(A) GRR = NRR \implies GRR = \frac{NRR}{p(A)}$$
+
+Por otro lado, la **Tasa Global de Fecundidad (TGF)**, que contabiliza los nacimientos de ambos sexos, se relaciona con la GRR (que solo cuenta hijas) mediante la razón de sexos al nacer o *Sex Ratio at Birth* ($SRB$). 
+
+$$TGF = GRR (1 + SRB)$$
+
+Sustituyendo la equivalencia de la GRR que obtuvimos en el primer paso, obtenemos la ecuación general:
+
+$$TGF = \frac{NRR}{p(A)}  (1 + SRB)$$
+
+**Cálculo para el reemplazo:**
+
+Para encontrar la TGF de reemplazo, aplicamos los valores estándar observados en poblaciones humanas con baja mortalidad:
+
+1. Buscamos el equilibrio generacional, por lo que $NRR = 1$.
+2. Biológicamente, nacen aproximadamente 105 niños por cada 100 niñas, por lo que $SRB = 1.05$.
+3. La probabilidad de que una recién nacida sobreviva hasta la edad media de la maternidad en condiciones modernas es de aproximadamente 98%, por lo que $p(A) \approx 0.98$.
+
+Sustituyendo estos valores en nuestra ecuación:
+
+$$TGF = \frac{1}{0.98} (1 + 1.05)$$
+
+$$TGF = \frac{2.05}{0.98}$$
+
+$$TGF \approx 2.0918 \approx 2.1$$
+
+**Conclusión:**
+
+La demostración matemática prueba que la Tasa Global de Fecundidad necesaria para el reemplazo poblacional es de **2.1 hijos por mujer**. El exceso de 0.1 sobre los 2 hijos estrictos compensa tanto el mayor nacimiento de varones ($SRB = 1.05$) como la mortalidad femenina antes de concluir su periodo reproductivo ($p(A) < 1$).
+
+
+# Fecundidad
+
+En este apartado se evalúa la intensidad del comportamiento reproductivo de las mujeres en el estado de Tlaxcala para los años 2010 y 2019. Mediante el cruce de los registros administrativos de nacimientos (INEGI) con las proyecciones de población femenina a mitad de año (CONAPO) y la función de años-persona vividos ($L_x$) de nuestras tablas de mortalidad, calculamos tres indicadores fundamentales para dimensionar el nivel de reemplazo poblacional.
+
+1. Tasa Global de Fecundidad (TGF)Representa el número promedio de hijos que tendría una mujer al final de su vida reproductiva si experimentara las tasas específicas de fecundidad observadas en un año dado. Se calcula sumando las Tasas Específicas de Fecundidad ($TEF_x$) y multiplicando por la amplitud del grupo (5 años):
+
+$$TGF=5\cdot\sum_{x=15}^{45}TEF_x$$
+
+2. Tasa Bruta de Reproducción (TBR)Mide el número promedio de hijas que tendría una mujer a lo largo de su vida reproductiva, aislando la capacidad de sustitución biológica. Se utiliza una constante biológica de nacimientos femeninos (aprox. 0.4878):
+
+$$TBR=5\cdot\sum_{x=15}^{45}TEF_{x}^{fem}$$
+
+3. Tasa Neta de Reproducción (TNR)Ajusta la TBR castigando los nacimientos por la probabilidad de que las madres fallezcan antes de culminar su periodo fértil, integrando la estructura de mortalidad ($_5L_x$) de la tabla de vida:
+
+$$TNR=\sum_{x=15}^{45}\left(TEF_{x}^{fem}\cdot\frac{_5L_x}{l_0}\right)$$
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+# 1. Cargar datos de fecundidad y población
+nacimientos <- read_excel("data/fecundidad_Tlx.xlsx", sheet = "Nacimientos")
+poblacion <- read_excel("data/fecundidad_Tlx.xlsx", sheet = "Poblacion")
+
+# 2. Transformar fecundidad a formato largo
+nac_long <- nacimientos %>%
+  select(-total) %>%
+  pivot_longer(cols = -año, names_to = "grupo_edad", values_to = "nacimientos")
+
+pob_long <- poblacion %>%
+  select(-total) %>%
+  pivot_longer(cols = -año, names_to = "grupo_edad", values_to = "poblacion")
+
+# 3. Calcular Tasas Específicas de Fecundidad
+fecundidad <- nac_long %>%
+  left_join(pob_long, by = c("año", "grupo_edad")) %>%
+  mutate(
+    TEF = nacimientos / poblacion,
+    TEF_fem = TEF * 0.4878
+  )
+
+# 4. Extraer Lx directamente de las tablas de vida calculadas previamente en memoria
+mortalidad_Lx <- bind_rows(
+  tabla_mujeres %>%
+    filter(x %in% seq(15, 45, by = 5)) %>%
+    mutate(año = 2010, grupo_edad = paste0(x, "-", x + 4)),
+  tabla_m19 %>%
+    filter(x %in% seq(15, 45, by = 5)) %>%
+    mutate(año = 2019, grupo_edad = paste0(x, "-", x + 4))
+) %>%
+  select(año, grupo_edad, Lx)
+
+# 5. Calcular indicadores finales (TGF, TBR, TNR)
+indicadores_finales <- fecundidad %>%
+  left_join(mortalidad_Lx, by = c("año", "grupo_edad")) %>%
+  group_by(año) %>%
+  summarise(
+    TGF = sum(TEF) * 5,
+    TBR = sum(TEF_fem) * 5,
+    TNR = sum(TEF_fem * (Lx / 100000))
+  )
+
+# 6. Desplegar la tabla final
+knitr::kable(indicadores_finales, 
+             caption = "TGF, TBR y TNR para Tlaxcala (2010 y 2019)",
+             digits = 3)
+
+```
+
+**Análisis:**
+
+Los números nos cuentan una historia muy clara: la dinámica reproductiva en Tlaxcala está cambiando a un ritmo acelerado y apunta directamente hacia el decrecimiento. En 2010, la $TGF$ ya nos mostraba un promedio bajo de 1.426 hijos por mujer, pero para 2019 esa cifra cayó drásticamente a 1.130. Ambos valores están bastante lejos del famoso "nivel de reemplazo" (2.1 hijos), lo que confirma que el estado ya entró de lleno en una etapa muy restrictiva de su transición demográfica. Las familias grandes, al menos en las estadísticas, van quedando en el pasado.
+
+Si miramos específicamente la capacidad de sustitución biológica con la $TBR$, pasamos de 0.696 a 0.551 en ese mismo periodo. En otras palabras, la generación actual de madres no está siendo reemplazada ni siquiera por una sola hija en promedio. Lo más interesante surge al meter a la ecuación el factor de supervivencia con la $TNR$, que nos arroja valores de 0.678 y 0.539 respectivamente. Como la diferencia entre la $TBR$ y la $TNR$ es casi inexistente, podemos concluir algo fundamental: la baja reproducción no es porque las mujeres estén falleciendo en su etapa fértil, sino porque el estilo de vida actual, las decisiones personales o los factores socioeconómicos están frenando fuertemente la maternidad.
+
+En resumen, esa $TNR$ de 0.539 significa que la próxima generación de mujeres será prácticamente la mitad (un 46% más pequeña) que la de sus madres. Si esta tendencia se mantiene, y si no hay una fuerte ola de migración hacia el estado que lo compense, veremos cómo la base de la pirámide de Tlaxcala se hace cada vez más estrecha. A la larga, esto nos llevará a una población mucho más envejecida, con menos jóvenes para mover la economía y un reto enorme para los futuros sistemas de salud y pensiones de la entidad.
+
+### Finlandia
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 
@@ -750,6 +1004,10 @@ plot(em_FIN$Time, em_FIN$em)
 
 ```
 
+
+### MEX
+
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 
 # Población total, LocID de México 484
@@ -780,4 +1038,3 @@ em_MEX <- tgf_MEX[ , .(em = sum(mc_tef)/sum(tef)), .(Time)]
 plot(em_MEX$Time, em_MEX$em)
 
 ```
-
