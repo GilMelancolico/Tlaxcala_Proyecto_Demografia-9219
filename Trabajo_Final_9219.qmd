@@ -803,7 +803,6 @@ ggsave(
 
 ```
 
-
 ```{r echo=FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width='80%'}
 # Gráfica de qx
 ggplot(
@@ -858,15 +857,15 @@ Al eliminar la violencia homicida, los hombres tlaxcaltecas ganarían cerca de 0
 
 Para establecer el nivel de reemplazo generacional exacto, partimos de la **Tasa Neta de Reproducción (NRR)**. Las condiciones de crecimiento poblacional dependen de este indicador:
 
-* $NRR > 1$: La población crece.
-* $NRR < 1$: La población decrece.
-* $NRR = 1$: Nivel de reemplazo exacto (equilibrio).
+-   $NRR > 1$: La población crece.
+-   $NRR < 1$: La población decrece.
+-   $NRR = 1$: Nivel de reemplazo exacto (equilibrio).
 
 Sabemos que la relación entre la Tasa Neta de Reproducción (NRR) y la **Tasa Bruta de Reproducción (GRR)** está dada por la probabilidad de que una mujer sobreviva hasta la edad reproductiva media $A$, denotada como $p(A)$:
 
 $$p(A) GRR = NRR \implies GRR = \frac{NRR}{p(A)}$$
 
-Por otro lado, la **Tasa Global de Fecundidad (TGF)**, que contabiliza los nacimientos de ambos sexos, se relaciona con la GRR (que solo cuenta hijas) mediante la razón de sexos al nacer o *Sex Ratio at Birth* ($SRB$). 
+Por otro lado, la **Tasa Global de Fecundidad (TGF)**, que contabiliza los nacimientos de ambos sexos, se relaciona con la GRR (que solo cuenta hijas) mediante la razón de sexos al nacer o *Sex Ratio at Birth* ($SRB$).
 
 $$TGF = GRR (1 + SRB)$$
 
@@ -878,9 +877,9 @@ $$TGF = \frac{NRR}{p(A)}  (1 + SRB)$$
 
 Para encontrar la TGF de reemplazo, aplicamos los valores estándar observados en poblaciones humanas con baja mortalidad:
 
-1. Buscamos el equilibrio generacional, por lo que $NRR = 1$.
-2. Biológicamente, nacen aproximadamente 105 niños por cada 100 niñas, por lo que $SRB = 1.05$.
-3. La probabilidad de que una recién nacida sobreviva hasta la edad media de la maternidad en condiciones modernas es de aproximadamente 98%, por lo que $p(A) \approx 0.98$.
+1.  Buscamos el equilibrio generacional, por lo que $NRR = 1$.
+2.  Biológicamente, nacen aproximadamente 105 niños por cada 100 niñas, por lo que $SRB = 1.05$.
+3.  La probabilidad de que una recién nacida sobreviva hasta la edad media de la maternidad en condiciones modernas es de aproximadamente 98%, por lo que $p(A) \approx 0.98$.
 
 Sustituyendo estos valores en nuestra ecuación:
 
@@ -900,15 +899,15 @@ La demostración matemática prueba que la Tasa Global de Fecundidad necesaria p
 
 En este apartado se evalúa la intensidad del comportamiento reproductivo de las mujeres en el estado de Tlaxcala para los años 2010 y 2019. Mediante el cruce de los registros administrativos de nacimientos (INEGI) con las proyecciones de población femenina a mitad de año (CONAPO) y la función de años-persona vividos ($L_x$) de nuestras tablas de mortalidad, calculamos tres indicadores fundamentales para dimensionar el nivel de reemplazo poblacional.
 
-1. Tasa Global de Fecundidad (TGF)Representa el número promedio de hijos que tendría una mujer al final de su vida reproductiva si experimentara las tasas específicas de fecundidad observadas en un año dado. Se calcula sumando las Tasas Específicas de Fecundidad ($TEF_x$) y multiplicando por la amplitud del grupo (5 años):
+1.  Tasa Global de Fecundidad (TGF)Representa el número promedio de hijos que tendría una mujer al final de su vida reproductiva si experimentara las tasas específicas de fecundidad observadas en un año dado. Se calcula sumando las Tasas Específicas de Fecundidad ($TEF_x$) y multiplicando por la amplitud del grupo (5 años):
 
 $$TGF=5\cdot\sum_{x=15}^{45}TEF_x$$
 
-2. Tasa Bruta de Reproducción (TBR)Mide el número promedio de hijas que tendría una mujer a lo largo de su vida reproductiva, aislando la capacidad de sustitución biológica. Se utiliza una constante biológica de nacimientos femeninos (aprox. 0.4878):
+2.  Tasa Bruta de Reproducción (TBR)Mide el número promedio de hijas que tendría una mujer a lo largo de su vida reproductiva, aislando la capacidad de sustitución biológica. Se utiliza una constante biológica de nacimientos femeninos (aprox. 0.4878):
 
 $$TBR=5\cdot\sum_{x=15}^{45}TEF_{x}^{fem}$$
 
-3. Tasa Neta de Reproducción (TNR)Ajusta la TBR castigando los nacimientos por la probabilidad de que las madres fallezcan antes de culminar su periodo fértil, integrando la estructura de mortalidad ($_5L_x$) de la tabla de vida:
+3.  Tasa Neta de Reproducción (TNR)Ajusta la TBR castigando los nacimientos por la probabilidad de que las madres fallezcan antes de culminar su periodo fértil, integrando la estructura de mortalidad ($_5L_x$) de la tabla de vida:
 
 $$TNR=\sum_{x=15}^{45}\left(TEF_{x}^{fem}\cdot\frac{_5L_x}{l_0}\right)$$
 
@@ -1058,4 +1057,3 @@ Por un lado, la curva de Tlaxcala presenta un calendario de fecundidad "temprano
 Por el contrario, la curva de Finlandia muestra un evidente "envejecimiento" o postergación del calendario de fecundidad. Durante las edades de 15 a 24 años, la tasa de nacimientos es casi nula. Su pico reproductivo se desplaza hasta el grupo de 30 a 34 años. Esta estructura es el sello característico de los países altamente desarrollados, donde las mujeres postergan la maternidad para priorizar su consolidación académica, su inserción en el mercado laboral y su independencia económica antes de formar una familia.
 
 En conclusión, la gráfica demuestra que mientras Finlandia concentra la reproducción en la tercera década de vida bajo una planificación tardía, Tlaxcala aún conserva una estructura donde la juventud es la principal ventana reproductiva, lo que plantea retos muy distintos para cada gobierno en temas de salud materna, educación y guarderías.
-

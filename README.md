@@ -27,6 +27,8 @@ Este repositorio contiene el código y los datos necesarios para la construcció
 * **Caída en la Esperanza de Vida:** Se observó un retroceso histórico provocado por la crisis sanitaria. La esperanza de vida masculina ($e_{0}$) cayó drásticamente de 75.00 años en 2010 a **64.56 años en 2021**.
 * **Brecha de Género:** La sobremortalidad masculina durante la pandemia duplicó la brecha de género, pasando de 3.83 años de diferencia en 2010 a **8.87 años en 2021** a favor de las mujeres.
 * **Mortalidad Selectiva:** El incremento de la mortalidad impactó severamente a los grupos de edad avanzada (aumentando un 22% el riesgo de muerte en hombres de 60 a 65 años), mientras que la mortalidad infantil se mantuvo estable.
+* **Comparación de fecundidad:** Calendario temprano en Tlaxcala/México (20-24 años). Calendario tardío en Finlandia (30-34 años), reflejando postergación de la maternindad. 
+* **Implicación demográfica:** Tendencia hacia envejecimiento poblacional debido a menor entrada de cohortes jovenes y observación de caídas estructurales en la fecundidad, consistente con etapas de transición demográfica.
 
 ## 🛠️ Reproducibilidad (Instrucciones para Revisión)
 Este proyecto está diseñado para ser **100% reproducible**. No es necesario modificar ninguna ruta local absoluta.
